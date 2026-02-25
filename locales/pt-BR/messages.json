@@ -1,0 +1,296 @@
+{
+  "extensionName": {
+    "message": "Exportador de Comentários do Instagram Reels e Posts para CSV - IGMate"
+  },
+  "extensionDescription": {
+    "message": "Exporte milhares de comentários de posts e reels rapidamente para CSV/Excel. Perfeito para sorteios."
+  },
+  "support_subject": {
+    "message": "Solicitar ajuda para o exportador de comentários do Instagram - IGMate"
+  },
+  "support_body": {
+    "message": "Olá, estou enfrentando alguns problemas ao usar a extensão e preciso da sua ajuda:"
+  },
+  "pop_menu_account": {
+    "message": "Conta da extensão"
+  },
+  "pop_menu_feedback": {
+    "message": "Feedback do cliente"
+  },
+  "pop_menu_support": {
+    "message": "Suporte ao cliente"
+  },
+  "pop_menu_logout": {
+    "message": "Sair"
+  },
+  "pop_menu_unlogin": {
+    "message": "Entrar"
+  },
+  "pop_btn_login_ins": {
+    "message": "Entrar no Instagram"
+  },
+  "premium_upgrade_monthly_limit_reached": {
+    "message": "Limite mensal atingido"
+  },
+  "premium_upgrade_daily_limit_reached": {
+    "message": "Limite diário atingido"
+  },
+  "premium_upgrade_upgrade_to_premium": {
+    "message": "Atualizar para Premium"
+  },
+  "premium_upgrade_this_months_usage": {
+    "message": "Uso deste mês"
+  },
+  "premium_upgrade_todays_usage": {
+    "message": "Uso de hoje"
+  },
+  "premium_upgrade_views": {
+    "message": "visualizações"
+  },
+  "premium_upgrade_comments": {
+    "message": "exportar comentários"
+  },
+  "premium_upgrade_subscribe_to_export_comments": {
+    "message": "Assine para exportar comentários ilimitadamente"
+  },
+  "premium_upgrade_unlimited_daily_export": {
+    "message": "Exportação diária ilimitada de comentários"
+  },
+  "premium_upgrade_more": {
+    "message": "Mais..."
+  },
+  "premium_upgrade_view_plans": {
+    "message": "Ver planos"
+  },
+  "pop_guide_title": {
+    "message": "Guia do Usuário"
+  },
+  "pop_guide_desc": {
+    "message": "Aprenda rapidamente como usar"
+  },
+  "pop_guide_quikstart": {
+    "message": "Início rápido"
+  },
+  "pop_guide_quik_title1": {
+    "message": "Abra um post ou Reels do Instagram"
+  },
+  "pop_guide_quik_desc1": {
+    "message": "Acesse a página do post do qual deseja baixar os comentários"
+  },
+  "pop_guide_quik_title2": {
+    "message": "Clique no ícone da extensão"
+  },
+  "pop_guide_quik_desc2": {
+    "message": "O link será preenchido automaticamente ou colado manualmente"
+  },
+  "pop_guide_quik_title3": {
+    "message": "Configure as opções de download"
+  },
+  "pop_guide_quik_desc3": {
+    "message": "Selecione os campos necessários e as configurações de segurança"
+  },
+  "pop_guide_quik_title4": {
+    "message": "Inicie o download e a exportação"
+  },
+  "pop_guide_quik_desc4": {
+    "message": "Compatível com formatos CSV, Excel e JSON"
+  },
+  "pop_guide_tip_title": {
+    "message": "Lembrete"
+  },
+  "pop_guide_tip1": {
+    "message": "Campos avançados como e-mail e telefone exigem mais tempo de download"
+  },
+  "pop_guide_tip2": {
+    "message": "Recomendamos usar o modo de segurança equilibrado para reduzir o risco de bloqueio da conta"
+  },
+  "pop_guide_tip3": {
+    "message": "Você pode pausar e retomar a qualquer momento durante o download"
+  },
+  "pop_guide_tip4": {
+    "message": "Os registros históricos serão salvos para fácil reexportação"
+  },
+  "pop_guide_start": {
+    "message": "Começar"
+  },
+  "pop_guide_know": {
+    "message": "Entendi"
+  },
+  "pop_input_title": {
+    "message": "Link do post do Instagram"
+  },
+  "pop_input_wh": {
+    "message": "Ver diretrizes de uso"
+  },
+  "pop_validate_tip1": {
+    "message": "Por favor, insira o link do Instagram"
+  },
+  "pop_validate_tip2": {
+    "message": "Por favor, insira um link válido de post ou Reels do Instagram"
+  },
+  "pop_validate_tip3": {
+    "message": "O link é válido e você pode iniciar o download"
+  },
+  "pop_validate_tip": {
+    "message": "Compatível com posts e Reels"
+  },
+  "pop_btn_start": {
+    "message": "Iniciar download dos comentários"
+  },
+  "pop_his_title": {
+    "message": "Downloads recentes"
+  },
+  "pop_his_unit": {
+    "message": "registros"
+  },
+  "pop_his_btn": {
+    "message": "Ver todo o histórico"
+  },
+  "pop_his_nodata": {
+    "message": "Nenhum registro de download disponível no momento"
+  },
+  "pop_home_app_name": {
+    "message": "IG Growth Pro"
+  },
+  "pop_home_slogan": {
+    "message": "Assistente de crescimento inteligente"
+  },
+  "pop_home_why_choose_us": {
+    "message": "Por que escolher a gente?"
+  },
+  "pop_home_value1_title": {
+    "message": "Seguir em massa com inteligência"
+  },
+  "pop_home_value1_desc": {
+    "message": "Encontre automaticamente usuários-alvo a partir de concorrentes e posts em alta"
+  },
+  "pop_home_value2_title": {
+    "message": "Filtragem precisa"
+  },
+  "pop_home_value2_desc": {
+    "message": "Filtre contas de alta qualidade para aumentar a taxa de follow-back"
+  },
+  "pop_home_value3_title": {
+    "message": "Análise de desempenho"
+  },
+  "pop_home_value3_desc": {
+    "message": "Acompanhe resultados em tempo real e otimize sua estratégia de crescimento"
+  },
+  "pop_home_cta_start": {
+    "message": "Começar"
+  },
+  "pop_home_footer_tip": {
+    "message": "Até 140 follows por dia · Controle de ritmo seguro"
+  },
+  "tab_header_feedback": {
+    "message": "Feedback"
+  },
+  "tab_header_support": {
+    "message": "Suporte"
+  },
+  "tab_header_his": {
+    "message": "Histórico de downloads"
+  },
+  "tab_new_title": {
+    "message": "Iniciar novo download"
+  },
+  "tab_new_btn": {
+    "message": "Iniciar download"
+  },
+  "tab_new_tip_title": {
+    "message": "Formatos de link suportados:"
+  },
+  "tab_new_tip_post": {
+    "message": "Post: https://www.instagram.com/p/xxx"
+  },
+  "tab_new_tip_reels": {
+    "message": "Reels: https://www.instagram.com/reel/xxx"
+  },
+  "feedback_return": {
+    "message": "Voltar"
+  },
+  "tab_post_redownload": {
+    "message": "Baixar novamente"
+  },
+  "tab_post_newdownload": {
+    "message": "Novo download"
+  },
+  "tab_complete_title": {
+    "message": "Download concluído!"
+  },
+  "tab_complete_desc": {
+    "message": "Todos os comentários foram baixados com sucesso"
+  },
+  "tab_complete_downloads_title": {
+    "message": "Total de downloads"
+  },
+  "tab_complete_downloads_desc": {
+    "message": "registros"
+  },
+  "tab_complete_time_title": {
+    "message": "Tempo total gasto"
+  },
+  "tab_complete_completion": {
+    "message": "Horário de conclusão"
+  },
+  "tab_excel_btn": {
+    "message": "Exportar Excel"
+  },
+  "tab_csv_btn": {
+    "message": "Exportar CSV"
+  },
+  "tab_json_btn": {
+    "message": "Exportar JSON"
+  },
+  "tab_advanced_fields": {
+    "message": "Campos avançados selecionados, o download levará mais tempo"
+  },
+  "tab_downloading_fields": {
+    "message": "Campos avançados selecionados, o download levará mais tempo"
+  },
+  "tab_downloading_spend": {
+    "message": "Tempo gasto"
+  },
+  "tab_downloading_estimated": {
+    "message": "estimado restante"
+  },
+  "tab_downloading_time_tip": {
+    "message": "Em processo de cálculo..."
+  },
+  "tab_downloading_resume": {
+    "message": "Retomar"
+  },
+  "tab_downloading_pause": {
+    "message": "Pausar"
+  },
+  "tab_downloading_settings": {
+    "message": "Configurações"
+  },
+  "tab_downloading_paused_tip": {
+    "message": "Download pausado, clique em \"Retomar\" para continuar"
+  },
+  "tab_downloading_extended_tip": {
+    "message": "Obtendo dados de campos avançados, pode levar bastante tempo..."
+  },
+  "tab_table_title": {
+    "message": "Lista de comentários"
+  },
+  "tab_table_page_last": {
+    "message": "Anterior"
+  },
+  "tab_table_page_next": {
+    "message": "Próximo"
+  },
+  "tab_download_complete": {
+    "message": "Download concluído!"
+  },
+  "tab_download_success": {
+    "message": "Seus dados foram baixados com sucesso"
+  },
+  "tab_download_comments": {
+    "message": "Exportar comentários"
+  },
+  "tab_download_save_time": {
+    "message": "tempo economizado"
+  }
+}
