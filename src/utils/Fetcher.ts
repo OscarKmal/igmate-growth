@@ -113,4 +113,22 @@ export class Fetcher {
 	    const rtnData = await ApiUtils.postRequest(API_URLS.getShareTemplateList, {})
 		return rtnData;
 	}
+
+    //addFollow
+	static async addFollow(taskId: string, followUserId: string, followeeUserId: string) {
+	    const rtnData = await ApiUtils.postRequest(API_URLS.addFollow, {taskId, followUserId, followeeUserId})
+		return rtnData;
+	}
+
+    //followerStats
+	static async followerStats(followUserId: string) {
+	    const rtnData = await ApiUtils.postRequest(API_URLS.followerStats, {followUserId})
+		return rtnData;
+	}
+
+    //distinctFollowerUserIdsLast30Days
+	static async distinctFollowerUserIdsLast30Days(followeeUserId: string) {
+	    const rtnData = await ApiUtils.postRequest(API_URLS.distinctFollowerUserIdsLast30Days, {followeeUserId})
+		return rtnData;
+	}
 }

@@ -15,9 +15,14 @@ import {
   FileText,
   Trash2,
   Users,
+  Target,
+  Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { TASK_TYPES } from "~utils/taskTypes";
+import { createGrowthTask, patchActiveGrowthTask, startGrowthTask } from "~utils/growthTaskCenter";
+import { buildBatchFollowEstimatedTimeText } from "~utils/estimateTimeUtils";
+import { loadNormalizedSafetySettings } from "~utils/safetySettingsUtils";
 
 interface CreateTaskProps {
   onClose: () => void;
@@ -38,12 +43,17 @@ export function CreateTask({
 }: CreateTaskProps) {
   const [selectedGoal, setSelectedGoal] =
     useState<GoalType>(null);
+  const [competitorEdge, setCompetitorEdge] = useState<"followers" | "following">("followers");
+  const [postSourceMode, setPostSourceMode] = useState<"likers" | "commenters" | "both">("commenters");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showCustomRatio, setShowCustomRatio] = useState(false);
   const [isCustomValue, setIsCustomValue] = useState(false);
   const [showCustomPosts, setShowCustomPosts] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
+  const [batchEstimatedTimeText, setBatchEstimatedTimeText] = useState<string>("");
   const [uploadedFile, setUploadedFile] =
     useState<UploadedFile | null>(null);
+  const [csvUsernames, setCsvUsernames] = useState<string[]>([]);
   const [taskData, setTaskData] = useState({
     input: "",
     filters: {
@@ -72,9 +82,50 @@ export function CreateTask({
     },
   };
 
-  const handleStart = () => {
-    onComplete();
-    onClose();
+  const handleStart = async () => {
+    try {
+      const type = (() => {
+        if (selectedGoal === "similar") return "competitor-follow";
+        if (selectedGoal === "interested") return "post-follow";
+        if (selectedGoal === "batch") return "csv-follow";
+        return null;
+      })();
+
+      if (!type) return;
+
+      const sourceInput = selectedGoal === "batch" ? (uploadedFile?.name || "") : taskData.input;
+      const task = await createGrowthTask({
+        type,
+        sourceInput,
+        filters: taskData.filters
+      });
+
+	  if (type === "competitor-follow") {
+		  await patchActiveGrowthTask(task.id, {
+			  competitorEdge
+		  });
+	  }
+
+	  if (type === "post-follow") {
+		  await patchActiveGrowthTask(task.id, {
+			  postSourceMode,
+			  postUrl: taskData.input
+		  });
+	  }
+
+    if (type === "csv-follow" && csvUsernames.length > 0) {
+      await patchActiveGrowthTask(task.id, {
+        csvUsernames,
+        total: csvUsernames.length
+      });
+    }
+
+      await startGrowthTask(task.id);
+      onComplete();
+      onClose();
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   const handleSelectGoal = (goal: GoalType) => {
@@ -102,26 +153,43 @@ export function CreateTask({
     document.body.removeChild(link);
   };
 
-  const handleFileUpload = (
+  const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (file) {
-      // 模拟解析文件并获取用户数量
-      // 实际应用中这里需要真正解析CSV/Excel文件
-      const randomUserCount =
-        Math.floor(Math.random() * 300) + 100;
-      setUploadedFile({
-        name: file.name,
-        userCount: randomUserCount,
-        uploadDate: new Date(),
-      });
-      setTaskData({ ...taskData, input: file.name });
+      setIsParsing(true);
+      setBatchEstimatedTimeText("");
+      try {
+        const { parseInstagramUsersFromFile } = await import("~utils/fileParser");
+        const usernames = await parseInstagramUsersFromFile(file);
+        setCsvUsernames(usernames);
+        setUploadedFile({
+          name: file.name,
+          userCount: usernames.length,
+          uploadDate: new Date(),
+        });
+        setTaskData({ ...taskData, input: file.name });
+
+        const safety = await loadNormalizedSafetySettings();
+        const text = buildBatchFollowEstimatedTimeText({
+          count: usernames.length,
+          requestIntervalSeconds: safety.requestIntervalSeconds,
+          requestRandomRangeSeconds: safety.requestRandomRangeSeconds,
+          fixedRequestDurationSeconds: 1.5
+        });
+        setBatchEstimatedTimeText(text);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsParsing(false);
+      }
     }
   };
 
   const handleRemoveFile = () => {
     setUploadedFile(null);
+    setCsvUsernames([]);
     setTaskData({ ...taskData, input: "" });
   };
 
@@ -247,6 +315,12 @@ export function CreateTask({
                     onChange={(value) =>
                       setTaskData({ ...taskData, input: value })
                     }
+                    isParsing={isParsing}
+                    batchEstimatedTimeText={batchEstimatedTimeText}
+                    competitorEdge={competitorEdge}
+                    onCompetitorEdgeChange={setCompetitorEdge}
+                    postSourceMode={postSourceMode}
+                    onPostSourceModeChange={setPostSourceMode}
                     uploadedFile={uploadedFile}
                     onDownloadTemplate={handleDownloadTemplate}
                     onFileUpload={handleFileUpload}
@@ -282,7 +356,7 @@ export function CreateTask({
                       disabled={
                         (taskData.input.trim().length === 0 &&
                         selectedGoal !== "batch") ||
-                        (selectedGoal === "batch" && !taskData.uploadedFile)
+                        (selectedGoal === "batch" && !uploadedFile)
                       }
                       className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                     >
@@ -887,6 +961,12 @@ function InputSection({
   goal,
   value,
   onChange,
+  isParsing,
+  batchEstimatedTimeText,
+  competitorEdge,
+  onCompetitorEdgeChange,
+  postSourceMode,
+  onPostSourceModeChange,
   uploadedFile,
   onDownloadTemplate,
   onFileUpload,
@@ -895,6 +975,12 @@ function InputSection({
   goal: GoalType;
   value: string;
   onChange: (value: string) => void;
+  isParsing: boolean;
+  batchEstimatedTimeText?: string;
+  competitorEdge?: "followers" | "following";
+  onCompetitorEdgeChange?: (edge: "followers" | "following") => void;
+  postSourceMode?: "likers" | "commenters" | "both";
+  onPostSourceModeChange?: (mode: "likers" | "commenters" | "both") => void;
   uploadedFile?: UploadedFile | null;
   onDownloadTemplate?: () => void;
   onFileUpload?: (
@@ -1020,7 +1106,8 @@ function InputSection({
               <input
                 type="radio"
                 name="type"
-                defaultChecked
+                checked={(competitorEdge || "followers") === "followers"}
+                onChange={() => onCompetitorEdgeChange?.("followers")}
                 disabled={!hasInput}
                 className="w-5 h-5 text-purple-600"
               />
@@ -1044,6 +1131,8 @@ function InputSection({
               <input
                 type="radio"
                 name="type"
+                checked={competitorEdge === "following"}
+                onChange={() => onCompetitorEdgeChange?.("following")}
                 disabled={!hasInput}
                 className="w-5 h-5 text-purple-600"
               />
@@ -1176,7 +1265,8 @@ function InputSection({
               <input
                 type="radio"
                 name="interaction-type"
-                defaultChecked
+                checked={(postSourceMode || "commenters") === "commenters"}
+                onChange={() => onPostSourceModeChange?.("commenters")}
                 disabled={!hasInput}
                 className="w-5 h-5 text-pink-600"
               />
@@ -1191,6 +1281,8 @@ function InputSection({
               <input
                 type="radio"
                 name="interaction-type"
+                checked={postSourceMode === "likers"}
+                onChange={() => onPostSourceModeChange?.("likers")}
                 disabled={!hasInput}
                 className="w-5 h-5 text-pink-600"
               />
@@ -1322,8 +1414,16 @@ function InputSection({
               </div>
             </div>
 
-            {/* User Count Summary */}
-            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
+            {/* User Count Summary or Parsing Loading */}
+            <div className="relative flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3 min-h-[80px]">
+              {isParsing && (
+                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-xl z-10">
+                  <div className="flex items-center gap-2 text-orange-600 font-medium animate-pulse">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>正在解析文件...</span>
+                  </div>
+                </div>
+              )}
               <div className="flex items-center gap-2 flex-1">
                 <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Users className="w-4 h-4 text-white" />
@@ -1344,9 +1444,9 @@ function InputSection({
                 </div>
                 <div className="text-left">
                   <div className="text-xl text-purple-600">
-                    {Math.floor(uploadedFile.userCount / 140)}
+                    {batchEstimatedTimeText || "0 seconds"}
                   </div>
-                  <div className="text-xs text-gray-500">预计天数</div>
+                  <div className="text-xs text-gray-500">预计时间</div>
                 </div>
               </div>
             </div>

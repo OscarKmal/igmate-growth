@@ -15,7 +15,7 @@ interface PremiumUpgradeCardProps {
 
 export const PremiumUpgradeCard: React.FC<PremiumUpgradeCardProps> = ({
   currentUsage = 0,
-  dailyLimit = 200,
+  dailyLimit = process.env.PLASMO_PUBLIC_FREE_USER_DAILY_LIMIT,
   onUpgrade,
   showLimitInfo = true,
   limitType = "daily",

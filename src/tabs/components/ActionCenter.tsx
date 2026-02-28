@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Pause,
   Play,
@@ -14,37 +14,112 @@ import {
   ChevronUp,
   UserCheck,
   UserPlus,
+  Settings as SettingsIcon,
 } from "lucide-react";
 import {
   getTaskTypeFromTitle,
   getTaskTypeConfig,
 } from "~utils/taskTypes";
-import {MembershipModal} from "./MembershipModal";
+import { normalizeInsAvatarUrl } from "~utils/insAvatarUtils";
 import ConfirmDialog from "./ConfirmDialog";
+import { MembershipModal } from "./MembershipModal";
+import {
+  deleteActiveGrowthTask,
+  deleteStoppedGrowthTask,
+  getGrowthTaskSnapshot,
+  pauseGrowthTask,
+  startGrowthTask,
+  stopGrowthTask,
+  subscribeGrowthTaskSnapshot,
+  type GrowthTask,
+  type StoppedGrowthTask
+} from "~utils/growthTaskCenter";
+import { refreshActiveTasksFollowBackCounts } from "~utils/followBackStats";
 
 interface ActionCenterProps {
   isPremium: boolean;
   onCreateTask: () => void;
+  onOpenSettings?: () => void;
   hasActiveTasks?: boolean;
 }
 
 export function ActionCenter({
   isPremium,
   onCreateTask,
+  onOpenSettings,
   hasActiveTasks,
 }: ActionCenterProps) {
   const [expandedHistory, setExpandedHistory] = useState(false);
+  const [isLoadingTasks, setIsLoadingTasks] = useState(true);
+  const [activeTasks, setActiveTasks] = useState<GrowthTask[]>([]);
+  const [stoppedTasks, setStoppedTasks] = useState<StoppedGrowthTask[]>([]);
+  const [opTaskId, setOpTaskId] = useState<string | null>(null);
+  const [opType, setOpType] = useState<"pause" | "resume" | "stop" | "deleteStopped" | null>(null);
   const [cleaningTaskId, setCleaningTaskId] = useState<
-    number | null
+    string | null
   >(null);
   const [showMembershipModal, setShowMembershipModal] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmType, setConfirmType] = useState<'cancel' | 'newAction'>('cancel');
-  const [taskToCancel, setTaskToCancel] = useState<number | null>(
+  const [taskToCancel, setTaskToCancel] = useState<string | null>(
     null,
   );
 
-  const handleCleanNonFollowers = (taskId: number) => {
+  /**
+   * 用途：在定时器回调中拿到最新 activeTasks，避免 useEffect 依赖导致 interval 反复重建。
+   */
+  const activeTasksRef = useRef<GrowthTask[]>([]);
+
+  useEffect(() => {
+    let unsub: null | (() => void) = null;
+
+    const init = async () => {
+      setIsLoadingTasks(true);
+      try {
+        const snapshot = await getGrowthTaskSnapshot();
+        setActiveTasks(snapshot.activeTasks);
+        setStoppedTasks(snapshot.stoppedTasks);
+
+		// 初始化时刷新一次回关统计（不阻塞 UI 渲染）
+		void refreshActiveTasksFollowBackCounts(snapshot.activeTasks);
+      } finally {
+        setIsLoadingTasks(false);
+      }
+
+      unsub = subscribeGrowthTaskSnapshot((snapshot) => {
+        setActiveTasks(snapshot.activeTasks);
+        setStoppedTasks(snapshot.stoppedTasks);
+      });
+    };
+
+    init();
+
+    return () => {
+      unsub?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    activeTasksRef.current = activeTasks;
+  }, [activeTasks]);
+
+  useEffect(() => {
+    // 定时刷新 Follow Back（每 2 分钟一次），避免频繁打后端
+    const intervalMs = 2 * 60 * 1000;
+    const timer = window.setInterval(() => {
+      void refreshActiveTasksFollowBackCounts(activeTasksRef.current);
+    }, intervalMs);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  const hasRunningTask = useMemo(() => {
+    return activeTasks.some((t) => t.status === "running");
+  }, [activeTasks]);
+
+  const handleCleanNonFollowers = (taskId: string) => {
     if (!isPremium) {
       setShowMembershipModal(true);
       return;
@@ -57,7 +132,7 @@ export function ActionCenter({
     }, 3000);
   };
 
-  const handleCancelTask = (taskId: number) => {
+  const handleCancelTask = (taskId: string) => {
     setTaskToCancel(taskId);
     setConfirmType('cancel');
     setShowConfirmDialog(true);
@@ -65,7 +140,7 @@ export function ActionCenter({
 
   const handleNewAction = () => {
     // 检查是否有运行中的任务
-    if (activeTasks.length > 0) {
+    if (hasRunningTask) {
       setConfirmType('newAction');
       setShowConfirmDialog(true);
     } else {
@@ -73,49 +148,76 @@ export function ActionCenter({
     }
   };
 
-  const confirmAction = () => {
-    if (confirmType === 'cancel' && taskToCancel !== null) {
-      // In real app, this would trigger a callback to move task to completed list
-      setTaskToCancel(null);
-    } else if (confirmType === 'newAction') {
-      // 停止当前所有任务并创建新任务
-      onCreateTask();
+  const confirmAction = async () => {
+    try {
+      if (confirmType === 'cancel' && taskToCancel) {
+        setOpTaskId(taskToCancel);
+        setOpType('stop');
+        await stopGrowthTask(taskToCancel, 'user_cancel');
+        setTaskToCancel(null);
+      } else if (confirmType === 'newAction') {
+        onCreateTask();
+      }
+    } finally {
+      setOpTaskId(null);
+      setOpType(null);
+      setShowConfirmDialog(false);
     }
-    setShowConfirmDialog(false);
   };
 
-  const activeTasks = (hasActiveTasks !== false) ? [
-    {
-      id: 1,
-      title: "Follow from Competitor (@fashion_hub)",
-      status: "In Progress",
-      progress: 85,
-      total: 200,
-      todayActions: 28,
-      estimatedDays: "2–3 days",
-      impact: "+12 new followers",
-      statusColor: "blue",
-      followedCount: 85,
-      followedBackCount: 23,
-      cleanedCount: 15,
-      sourceUrl: "https://www.instagram.com/fashion_hub/",
-    },
-    {
-      id: 2,
-      title: "Follow from Post Likes (@travel_world)",
-      status: "In Progress",
-      progress: 142,
-      total: 300,
-      todayActions: 35,
-      estimatedDays: "4–5 days",
-      impact: "+18 new followers",
-      statusColor: "blue",
-      followedCount: 142,
-      followedBackCount: 38,
-      cleanedCount: 8,
-      sourceUrl: "https://www.instagram.com/p/ABC123XYZ/",
-    },
-  ] : [];
+  const visibleActiveTasks = useMemo(() => {
+    if (hasActiveTasks === false) return [];
+    return activeTasks;
+  }, [activeTasks, hasActiveTasks]);
+
+  const handlePauseResumeTask = async (task: GrowthTask) => {
+    try {
+      setOpTaskId(task.id);
+      if (task.status === "running") {
+        setOpType("pause");
+        await pauseGrowthTask(task.id);
+      } else {
+        setOpType("resume");
+        await startGrowthTask(task.id);
+      }
+    } finally {
+      setOpTaskId(null);
+      setOpType(null);
+    }
+  };
+
+  const handleStopTask = async (taskId: string) => {
+    try {
+      setOpTaskId(taskId);
+      setOpType("stop");
+      await stopGrowthTask(taskId, "user_cancel");
+    } finally {
+      setOpTaskId(null);
+      setOpType(null);
+    }
+  };
+
+  const handleDeleteStoppedTask = async (taskId: string) => {
+    try {
+      setOpTaskId(taskId);
+      setOpType("deleteStopped");
+      await deleteStoppedGrowthTask(taskId);
+    } finally {
+      setOpTaskId(null);
+      setOpType(null);
+    }
+  };
+
+  const handleDeleteActiveTask = async (taskId: string) => {
+    try {
+      setOpTaskId(taskId);
+      setOpType("stop");
+      await deleteActiveGrowthTask(taskId);
+    } finally {
+      setOpTaskId(null);
+      setOpType(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -126,16 +228,30 @@ export function ActionCenter({
             <Play className="w-5 h-5 text-purple-600" />
             Active Actions ({activeTasks.length})
           </h2>
-          <button
-            onClick={handleNewAction}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all text-sm flex items-center gap-2 shadow-md"
-          >
-            <Play className="w-4 h-4" />
-            New Action
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onOpenSettings}
+              className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all text-gray-600 shadow-sm"
+              title="Safety Settings"
+            >
+              <SettingsIcon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={handleNewAction}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all text-sm flex items-center gap-2 shadow-md"
+            >
+              <Play className="w-4 h-4" />
+              New Action
+            </button>
+          </div>
         </div>
 
-        {activeTasks.length === 0 ? (
+        {isLoadingTasks ? (
+          <div className="text-center py-12 text-gray-500">
+            <Loader2 className="w-10 h-10 mx-auto mb-3 text-gray-300 animate-spin" />
+            <p>Loading...</p>
+          </div>
+        ) : activeTasks.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
             <Clock className="w-12 h-12 mx-auto mb-3 text-gray-300" />
             <p>No active actions yet</p>
@@ -145,7 +261,7 @@ export function ActionCenter({
           </div>
         ) : (
           <div className="space-y-4">
-            {activeTasks.map((task) => (
+            {visibleActiveTasks.map((task) => (
               <ActionCard
                 key={task.id}
                 task={task}
@@ -154,6 +270,10 @@ export function ActionCenter({
                 }
                 cleaningTaskId={cleaningTaskId}
                 handleCancelTask={handleCancelTask}
+                handleDeleteActiveTask={handleDeleteActiveTask}
+                handlePauseResumeTask={handlePauseResumeTask}
+                opTaskId={opTaskId}
+                opType={opType}
               />
             ))}
           </div>
@@ -174,62 +294,23 @@ export function ActionCenter({
             )}
             Stopped Actions (Last 30 days)
           </h2>
-          <span className="text-sm text-gray-500">
-            3 actions
-          </span>
+          <span className="text-sm text-gray-500">{stoppedTasks.length} actions</span>
         </button>
 
         {expandedHistory && (
           <div className="space-y-3 pt-2">
-            <CompletedTaskItem
-              task={{
-                id: 1,
-                title: "Follow from Competitor (@fashion_hub)",
-                actions: 200,
-                impact: "+18 new followers",
-                date: "2 days ago",
-                followedCount: 200,
-                followedBackCount: 56,
-                cleanedCount: 28,
-                sourceUrl:
-                  "https://www.instagram.com/fashion_hub/",
-              }}
-              handleCleanNonFollowers={handleCleanNonFollowers}
-              cleaningTaskId={cleaningTaskId}
-              isLast={false}
-            />
-            <CompletedTaskItem
-              task={{
-                id: 2,
-                title: "Follow from Post Likes (@travel_world)",
-                actions: 150,
-                impact: "+12 new followers",
-                date: "5 days ago",
-                followedCount: 150,
-                followedBackCount: 42,
-                cleanedCount: 18,
-                sourceUrl:
-                  "https://www.instagram.com/p/ABC123XYZ/",
-              }}
-              handleCleanNonFollowers={handleCleanNonFollowers}
-              cleaningTaskId={cleaningTaskId}
-              isLast={false}
-            />
-            <CompletedTaskItem
-              task={{
-                id: 3,
-                title: "Follow from CSV (influencers_list.csv)",
-                actions: 95,
-                impact: "+8 new followers",
-                date: "1 week ago",
-                followedCount: 95,
-                followedBackCount: 24,
-                cleanedCount: 12,
-              }}
-              handleCleanNonFollowers={handleCleanNonFollowers}
-              cleaningTaskId={cleaningTaskId}
-              isLast={true}
-            />
+            {stoppedTasks.map((task, idx) => (
+              <CompletedTaskItem
+                key={task.id}
+                task={task}
+                handleCleanNonFollowers={handleCleanNonFollowers}
+                cleaningTaskId={cleaningTaskId}
+                isLast={idx === stoppedTasks.length - 1}
+                onDelete={handleDeleteStoppedTask}
+                opTaskId={opTaskId}
+                opType={opType}
+              />
+            ))}
           </div>
         )}
       </div>
@@ -276,23 +357,34 @@ function ActionCard({
   handleCleanNonFollowers,
   cleaningTaskId,
   handleCancelTask,
+  handleDeleteActiveTask,
+  handlePauseResumeTask,
+  opTaskId,
+  opType,
 }: {
-  task: any;
-  handleCleanNonFollowers: (taskId: number) => void;
-  cleaningTaskId: number | null;
-  handleCancelTask: (taskId: number) => void;
+  task: GrowthTask;
+  handleCleanNonFollowers: (taskId: string) => void;
+  cleaningTaskId: string | null;
+  handleCancelTask: (taskId: string) => void;
+  handleDeleteActiveTask: (taskId: string) => void;
+  handlePauseResumeTask: (task: GrowthTask) => void;
+  opTaskId: string | null;
+  opType: "pause" | "resume" | "stop" | "deleteStopped" | null;
 }) {
-  const [isPaused, setIsPaused] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [isCanceled, setIsCanceled] = useState(false);
 
-  const progressPercent = (task.progress / task.total) * 100;
+  const safeTotal = task.total > 0 ? task.total : 1;
+  const progressPercent = (task.progress / safeTotal) * 100;
   const taskType = getTaskTypeFromTitle(task.title);
   const taskTypeConfig = getTaskTypeConfig(taskType);
   const TaskIcon = taskTypeConfig.icon;
-  const followBackRate = Math.round(
-    (task.followedBackCount / task.followedCount) * 100,
-  );
+  const isPaused = task.status === "paused";
+  const isOperating = opTaskId === task.id && (opType === "pause" || opType === "resume" || opType === "stop");
+  const followedCount = task.followedCount ?? 0;
+  const followedBackCount = task.followedBackCount ?? 0;
+  const followBackRate = followedCount > 0 ? Math.round((followedBackCount / followedCount) * 100) : 0;
+  const todayFollowed = task.todayActions ?? 0;
 
   // Determine if task has a link URL
   const hasLinkUrl =
@@ -310,65 +402,22 @@ function ActionCard({
   };
 
   const handlePauseResume = () => {
-    setIsPaused(!isPaused);
+    handlePauseResumeTask(task);
   };
 
   const handleCancel = () => {
     handleCancelTask(task.id);
   };
 
+  const handleDelete = () => {
+    handleDeleteActiveTask(task.id);
+  };
+
   const handleToggleDetails = () => {
     setShowDetails(!showDetails);
   };
 
-  // Mock followed users data
-  const followedUsers = [
-    {
-      id: 1,
-      username: "fashionista_jane",
-      avatar: "https://i.pravatar.cc/150?img=1",
-      followers: 12500,
-      following: 850,
-      followStatus: "Following",
-      followedAt: "2 hours ago",
-    },
-    {
-      id: 2,
-      username: "style_maven_22",
-      avatar: "https://i.pravatar.cc/150?img=2",
-      followers: 8200,
-      following: 420,
-      followStatus: "Requested",
-      followedAt: "3 hours ago",
-    },
-    {
-      id: 3,
-      username: "trend_setter_mike",
-      avatar: "https://i.pravatar.cc/150?img=3",
-      followers: 45000,
-      following: 1200,
-      followStatus: "Following",
-      followedAt: "5 hours ago",
-    },
-    {
-      id: 4,
-      username: "daily_outfits",
-      avatar: "https://i.pravatar.cc/150?img=4",
-      followers: 23400,
-      following: 680,
-      followStatus: "Following",
-      followedAt: "1 day ago",
-    },
-    {
-      id: 5,
-      username: "closet_inspo",
-      avatar: "https://i.pravatar.cc/150?img=5",
-      followers: 5600,
-      following: 320,
-      followStatus: "Requested",
-      followedAt: "1 day ago",
-    },
-  ];
+  const followedUsers = Array.isArray(task.followedUsers) ? task.followedUsers : [];
 
   if (isCanceled) {
     return null; // In real app, parent would handle removal
@@ -436,7 +485,7 @@ function ActionCard({
               I Followed
             </div>
             <div className="text-lg font-bold text-purple-600">
-              {task.followedCount}
+              {followedCount}
             </div>
           </div>
 
@@ -458,7 +507,7 @@ function ActionCard({
               Follow Back
             </div>
             <div className="text-lg font-bold text-green-600">
-              {task.followedBackCount}
+              {followedBackCount}
             </div>
           </div>
 
@@ -529,9 +578,7 @@ function ActionCard({
             Today
           </div>
           <div className="text-sm font-medium">
-            {isPaused
-              ? "0 followed"
-              : `${task.todayActions} followed`}
+            {`${todayFollowed} followed`}
           </div>
         </div>
         <div>
@@ -591,7 +638,7 @@ function ActionCard({
           )}
         </button>
         <button
-          onClick={handleCancel}
+          onClick={handleDelete}
           className="flex-1 px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm flex items-center justify-center gap-2"
         >
           <X className="w-4 h-4" />
@@ -616,57 +663,65 @@ function ActionCard({
           </div>
 
           <div className="space-y-2 max-h-80 overflow-y-auto">
-            {followedUsers.map((user) => (
-              <div
-                key={user.id}
-                className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                {/* Avatar */}
-                <img
-                  src={user.avatar}
-                  alt={user.username}
-                  className="w-10 h-10 rounded-full"
-                />
-
-                {/* User Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm text-gray-900 truncate">
-                    @{user.username}
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
-                    <span>
-                      {user.followers.toLocaleString()}{" "}
-                      followers
-                    </span>
-                    <span>·</span>
-                    <span>
-                      {user.following.toLocaleString()}{" "}
-                      following
-                    </span>
-                  </div>
-                </div>
-
-                {/* Follow Status */}
-                <div className="flex items-center gap-2">
-                  {user.followStatus === "Following" ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
-                      <UserCheck className="w-3 h-3" />
-                      Following
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
-                      <UserPlus className="w-3 h-3" />
-                      Requested
-                    </span>
-                  )}
-                </div>
-
-                {/* Followed Time */}
-                <div className="text-xs text-gray-400 whitespace-nowrap">
-                  {user.followedAt}
-                </div>
+            {followedUsers.length === 0 ? (
+              <div className="text-sm text-gray-500 py-4 text-center">
+                No followed users yet.
               </div>
-            ))}
+            ) : (
+              followedUsers.map((user) => (
+                <div
+                  key={user.userId}
+                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  {/* Avatar */}
+                  {user.avatarUrl ? (
+                    <img
+                      src={normalizeInsAvatarUrl(user.avatarUrl)}
+                      alt={user.username || user.userId}
+                      className="w-10 h-10 rounded-full"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gray-200" />
+                  )}
+
+                  {/* User Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm text-gray-900 truncate">
+                      {user.username ? `@${user.username}` : user.userId}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
+                      <span>
+                        {(user.followers ?? 0).toLocaleString()} followers
+                      </span>
+                      <span>·</span>
+                      <span>
+                        {(user.following ?? 0).toLocaleString()} following
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Follow Status */}
+                  <div className="flex items-center gap-2">
+                    {user.followStatus === "Following" ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
+                        <UserCheck className="w-3 h-3" />
+                        Following
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                        <UserPlus className="w-3 h-3" />
+                        {user.followStatus || "Requested"}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Followed Time */}
+                  <div className="text-xs text-gray-400 whitespace-nowrap">
+                    {new Date(user.followedAt).toLocaleString()}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
@@ -679,21 +734,26 @@ function CompletedTaskItem({
   handleCleanNonFollowers,
   cleaningTaskId,
   isLast,
+  onDelete,
+  opTaskId,
+  opType,
 }: {
-  task: any;
-  handleCleanNonFollowers: (taskId: number) => void;
-  cleaningTaskId: number | null;
+  task: StoppedGrowthTask;
+  handleCleanNonFollowers: (taskId: string) => void;
+  cleaningTaskId: string | null;
   isLast: boolean;
+  onDelete: (taskId: string) => void;
+  opTaskId: string | null;
+  opType: "pause" | "resume" | "stop" | "deleteStopped" | null;
 }) {
   const taskType = getTaskTypeFromTitle(task.title);
   const taskTypeConfig = getTaskTypeConfig(taskType);
   const TaskIcon = taskTypeConfig.icon;
-  const followBackRate = task.followedCount
-    ? Math.round(
-        (task.followedBackCount / task.followedCount) * 100,
-      )
-    : 0;
+  const followedCount = task.followedCount ?? 0;
+  const followedBackCount = task.followedBackCount ?? 0;
+  const followBackRate = followedCount > 0 ? Math.round((followedBackCount / followedCount) * 100) : 0;
   const isCleaning = cleaningTaskId === task.id;
+  const isDeleting = opTaskId === task.id && opType === "deleteStopped";
 
   // Determine if task has a link URL
   const hasLinkUrl =
@@ -755,13 +815,12 @@ function CompletedTaskItem({
                   <span>·</span>
                   {/* <span>{task.actions} actions</span> */}
                   <span>·</span>
-                  <span>{task.date}</span>
+                  <span>{new Date(task.stoppedAt).toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Compact Stats Cards */}
-              {task.followedCount && (
-                <div className="flex items-center gap-1.5 ml-4">
+              <div className="flex items-center gap-1.5 ml-4">
                   <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-md px-2 py-1">
                     <div className="text-[10px] text-purple-600 mb-0.5 flex items-center gap-0.5">
                       <svg
@@ -780,7 +839,7 @@ function CompletedTaskItem({
                       Followed
                     </div>
                     <div className="text-sm font-bold text-purple-600">
-                      {task.followedCount}
+                      {followedCount}
                     </div>
                   </div>
 
@@ -802,7 +861,7 @@ function CompletedTaskItem({
                       Follow Back
                     </div>
                     <div className="text-sm font-bold text-green-600">
-                      {task.followedBackCount}
+                      {followedBackCount}
                     </div>
                   </div>
 
@@ -851,8 +910,7 @@ function CompletedTaskItem({
                       </div>
                     </div>
                   )}
-                </div>
-              )}
+              </div>
             </div>
           </div>
           {/* <button className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1 whitespace-nowrap ml-4">
@@ -873,31 +931,35 @@ function CompletedTaskItem({
           <button
             onClick={() => handleCleanNonFollowers(task.id)}
             disabled={isCleaning}
-            className="px-3 py-1.5 border border-orange-300 text-orange-600 rounded-lg hover:bg-orange-50 transition-colors text-xs flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`text-xs px-3 py-2 rounded-lg transition-colors flex items-center gap-1 ${
+              isCleaning
+                ? "bg-orange-100 text-orange-600"
+                : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+            }`}
           >
             {isCleaning ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Cleaning...
-              </>
+              <Loader2 className="w-3 h-3 animate-spin" />
             ) : (
-              <>
-                <svg
-                  className="w-3.5 h-3.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-                Clean Non-Followers
-              </>
+              <UserCheck className="w-3 h-3" />
             )}
+            Clean Non-Followers
+          </button>
+
+          <button
+            onClick={() => onDelete(task.id)}
+            disabled={isDeleting}
+            className={`text-xs px-3 py-2 rounded-lg transition-colors flex items-center gap-1 ${
+              isDeleting
+                ? "bg-red-100 text-red-600"
+                : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+            }`}
+          >
+            {isDeleting ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : (
+              <X className="w-3 h-3" />
+            )}
+            Delete
           </button>
         </div>
       </div>

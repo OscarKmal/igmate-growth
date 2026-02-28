@@ -1,29 +1,142 @@
 import React from 'react';
 import { User, Users, UserPlus, Crown, TrendingUp, Info, Activity } from 'lucide-react';
+import { Skeleton } from '~components/ui/skeleton';
 
-interface UserProfileProps {
+/**
+ * UserProfileProps
+ *
+ * 用途：
+ * - growth 页面用户信息卡片（UserProfile）所需的入参定义。
+ * - 该组件为“纯展示组件”，业务数据由外层页面/聚合逻辑提供。
+ *
+ * 属性：
+ * - avatarUrl：头像 URL。
+ * - username：Instagram 用户名（@xxx 不带 @）。
+ * - fullName：Instagram 显示名称。
+ * - followers：粉丝总数。
+ * - following：关注总数。
+ * - followersGrowth7d：近 7 天新增粉丝（按需求暂可传 0）。
+ * - followingGrowth7d：近 7 天新增关注（来自自动关注成功记录统计）。
+ * - isPremium：是否会员（插件账号维度）。
+ * - onMembershipClick：点击会员入口回调。
+ * - todayActionsUsed：今日已用次数（自动关注成功次数，按天累计）。
+ * - todayActionsLimit：今日限额。
+ */
+export interface UserProfileProps {
+  /**
+   * 用途：是否处于加载中。
+   * 类型：boolean
+   * 可选性：可选
+   * 默认值：false
+   */
+  loading?: boolean;
+
+  /**
+   * 用途：用户头像 URL。
+   * 类型：string
+   * 可选性：可选
+   * 默认值：无
+   */
+  avatarUrl?: string;
+
+  /**
+   * 用途：Instagram 用户名。
+   * 类型：string
+   * 可选性：可选
+   * 默认值：空字符串
+   */
+  username?: string;
+
+  /**
+   * 用途：Instagram 显示名称。
+   * 类型：string
+   * 可选性：可选
+   * 默认值：空字符串
+   */
+  fullName?: string;
+
+  /**
+   * 用途：粉丝总数。
+   * 类型：number
+   * 可选性：必填
+   * 默认值：无
+   */
   followers: number;
+
+  /**
+   * 用途：关注总数。
+   * 类型：number
+   * 可选性：必填
+   * 默认值：无
+   */
   following: number;
+
+  /**
+   * 用途：近 7 天新增粉丝。
+   * 类型：number
+   * 可选性：可选
+   * 默认值：0
+   */
   followersGrowth7d?: number;
+
+  /**
+   * 用途：近 7 天新增关注。
+   * 类型：number
+   * 可选性：可选
+   * 默认值：0
+   */
   followingGrowth7d?: number;
+
+  /**
+   * 用途：是否会员。
+   * 类型：boolean
+   * 可选性：必填
+   * 默认值：无
+   */
   isPremium: boolean;
+
+  /**
+   * 用途：点击会员入口回调。
+   * 类型：() => void
+   * 可选性：必填
+   * 默认值：无
+   */
   onMembershipClick: () => void;
-  todayActionsUsed?: number;
-  todayActionsLimit?: number;
+
+  /**
+   * 用途：今日已用次数。
+   * 类型：number
+   * 可选性：必填
+   * 默认值：无
+   */
+  todayActionsUsed: number;
+
+  /**
+   * 用途：今日限额。
+   * 类型：number
+   * 可选性：必填
+   * 默认值：无
+   */
+  todayActionsLimit: number;
 }
 
 export function UserProfile({ 
+  loading = false,
+  avatarUrl,
+  username = '',
+  fullName = '',
   followers, 
   following,
-  followersGrowth7d = 87,
-  followingGrowth7d = 142,
+  followersGrowth7d = 0,
+  followingGrowth7d = 0,
   isPremium,
   onMembershipClick,
-  todayActionsUsed = 122,
-  todayActionsLimit = 140
+  todayActionsUsed,
+  todayActionsLimit
 }: UserProfileProps) {
   const todayRemaining = todayActionsLimit - todayActionsUsed;
-  const progressPercent = (todayActionsUsed / todayActionsLimit) * 100;
+  const safeLimit = todayActionsLimit > 0 ? todayActionsLimit : 1;
+  const progressPercent = (todayActionsUsed / safeLimit) * 100;
 
   // Determine safety status
   const getSafetyStatus = () => {
@@ -39,22 +152,52 @@ export function UserProfile({
       <div className="flex items-center justify-between gap-8">
         <div className="flex items-center gap-4">
           {/* Avatar */}
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 via-pink-400 to-orange-400 flex items-center justify-center text-white">
-            <User className="w-8 h-8" />
-          </div>
+          {loading ? (
+            <Skeleton className="w-16 h-16 rounded-full" />
+          ) : avatarUrl ? (
+            <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100">
+              <img
+                src={avatarUrl}
+                alt={username || fullName || 'avatar'}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 via-pink-400 to-orange-400 flex items-center justify-center text-white">
+              <User className="w-8 h-8" />
+            </div>
+          )}
 
           {/* User Info */}
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl">demo_user_2024</h2>
-              {isPremium && (
-                <div className="flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-2 py-1 rounded-lg text-xs">
-                  <Crown className="w-3 h-3" />
-                  <span>会员</span>
-                </div>
+              <h2 className="text-xl">
+                {loading ? (
+                  <Skeleton className="h-6 w-28" />
+                ) : (
+                  fullName || username || '-'
+                )}
+              </h2>
+              <button
+                type="button"
+                onClick={onMembershipClick}
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors ${
+                  isPremium
+                    ? 'bg-gradient-to-r from-yellow-400 to-orange-400 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Crown className="w-3 h-3" />
+                <span>{isPremium ? 'Premium' : 'Free'}</span>
+              </button>
+            </div>
+            <div className="text-sm text-gray-500">
+              {loading ? (
+                <Skeleton className="h-5 w-20 mt-1" />
+              ) : (
+                username ? `@${username}` : '-'
               )}
             </div>
-            <p className="text-sm text-gray-500">Instagram Growth Account</p>
           </div>
         </div>
 
@@ -65,6 +208,7 @@ export function UserProfile({
             label="粉丝"
             total={followers}
             growth7d={followersGrowth7d}
+            loading={loading}
             gradientFrom="from-purple-500"
             gradientTo="to-purple-600"
           />
@@ -73,6 +217,7 @@ export function UserProfile({
             label="关注"
             total={following}
             growth7d={followingGrowth7d}
+            loading={loading}
             gradientFrom="from-pink-500"
             gradientTo="to-pink-600"
           />
@@ -112,8 +257,17 @@ export function UserProfile({
 
           {/* Stats Text */}
           <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>{todayActionsUsed} / {todayActionsLimit}</span>
-            <span className="font-medium text-gray-700">{todayRemaining} left</span>
+            {loading ? (
+              <>
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-16" />
+              </>
+            ) : (
+              <>
+                <span>{todayActionsUsed} / {todayActionsLimit}</span>
+                <span className="font-medium text-gray-700">{todayRemaining} left</span>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -126,6 +280,7 @@ function GrowthStatItem({
   label, 
   total,
   growth7d,
+  loading,
   gradientFrom,
   gradientTo
 }: { 
@@ -133,6 +288,7 @@ function GrowthStatItem({
   label: string;
   total: number;
   growth7d: number;
+  loading: boolean;
   gradientFrom: string;
   gradientTo: string;
 }) {
@@ -154,7 +310,11 @@ function GrowthStatItem({
             <TrendingUp className="w-4 h-4 text-white flex-shrink-0 mt-1" />
             <div>
               <div className="text-3xl text-white">
-                +{growth7d}
+                {loading ? (
+                  <Skeleton className="h-9 w-16 bg-white/20" />
+                ) : (
+                  <>+{growth7d}</>
+                )}
               </div>
               <div className="flex items-center gap-1 mt-0.5">
                 <span className="text-xs text-white/80">
@@ -180,7 +340,11 @@ function GrowthStatItem({
         <div className="pt-2 border-t border-white/20">
           <div className="text-xs text-white/70">总计</div>
           <div className="text-lg text-white">
-            {total.toLocaleString()}
+            {loading ? (
+              <Skeleton className="h-6 w-20 bg-white/20" />
+            ) : (
+              total.toLocaleString()
+            )}
           </div>
         </div>
       </div>

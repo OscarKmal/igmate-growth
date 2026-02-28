@@ -1,21 +1,21 @@
 
 export const API_URLS = {
     //Initial installation
-    userReg: 'app/user-reg/insComment/userReg',
+    userReg: 'app/user-reg/insGrowth/userReg',
     // get user info 
-    GET_USER_INFO: 'app/user-reg/insComment/getUserInfo',
+    GET_USER_INFO: 'app/user-reg/insGrowth/getUserInfo',
     // google login callback
     APP_LOGIN: `app/thirdParty/google/googleExtLogin`,
     //log
-    LOG_ACTION: 'app/user-action/insComment/log-action',
+    LOG_ACTION: 'app/user-action/insGrowth/log-action',
     //get config info
-    configUrl: 'app/user-action/insComment/getConfig',
+    configUrl: 'app/user-action/insGrowth/getConfig',
     //install page
-    userInstallGuide: 'app/web-transfer/insComment/user-install-guide',
+    userInstallGuide: 'app/web-transfer/insGrowth/user-install-guide',
     //uninstall page
-    userUnInstallGuide: 'app/web-transfer/insComment/user-uninstall-guide',
+    userUnInstallGuide: 'app/web-transfer/insGrowth/user-uninstall-guide',
     //save feedback
-    saveFeedBack: 'app/feedback/insComment/saveFeedback',
+    saveFeedBack: 'app/feedback/insGrowth/saveFeedback',
 	//save rating
 	saveRating: 'app/rating/saveRatingCws',
 	//check has five rating
@@ -25,13 +25,20 @@ export const API_URLS = {
     //jump stripe PAY URL
     GET_PAY_URL: 'app/stripe/create-checkout-session',
 	// get memberinfo
-	getMemberInfo: 'app/userRights/insComment/getUserMemberInfo',
+	getMemberInfo: 'app/userRights/insGrowth/getUserMemberInfo',
 	//extension login
-	extensionLogin: "app/user-reg/insComment/extensionLogin",
+	extensionLogin: "app/user-reg/insGrowth/extensionLogin",
 	//extension login
-	logout: "app/user-reg/insComment/logout",
+	logout: "app/user-reg/insGrowth/logout",
 	//get share template list
 	getShareTemplateList: 'app/shareTemplate/getShareTemplateList',
+    //addFollow
+    addFollow: 'app/follow/insGrowth/addFollow',
+    //followerStats
+    followerStats: 'app/follow/insGrowth/followerStats',
+    //distinctFollowerUserIdsLast30Days
+    distinctFollowerUserIdsLast30Days: 'app/follow/insGrowth/distinctFollowerUserIdsLast30Days'
+
 }
 
 export const INS_API_URLS = {
@@ -45,6 +52,8 @@ export const INS_API_URLS = {
     autoFollow: 'web/friendships/{userId}/follow/',
     //Unfollow
     unfollow: 'api/v1/friendships/destroy/',
-    //get comments
-    queryComments: 'graphql/query/'
+    //Get follow or unfollow information,get comments
+    queryApi: 'graphql/query/',
+    //get post likes
+    postLikes: 'api/v1/media/{mediaId}/likers/',
 }

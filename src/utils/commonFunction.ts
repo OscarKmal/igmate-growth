@@ -10,7 +10,9 @@ import {shareStyles, justice, witty, efficency, zen} from '~components/share/sha
 import { commentController } from "~utils/commentController";
 
 export const queryHash = {
-	"comments": "33ba35852cb50da46f5b5e889df7d159"
+	"comments": "33ba35852cb50da46f5b5e889df7d159",
+	"follower": "7dd9a7e2160524fd85f50317462cff9f",
+	"following": '3dec7e2c57367ef3da3d987d89f9dbc8'
 }
 
 export const onOpenFeedback = ()=>{
@@ -381,42 +383,6 @@ export function parseInstagramUrl(url: string) {
 	    return null;
 	}
 }
-
-// export const getExtendedFeilds = async (comments: PostComment[]) => {
-// 	const batchSize = 3;
-// 	const delayMin = 300;
-// 	const delayMax = 600;
-// 	for (let i = 0; i < comments.length; i += batchSize) {
-// 		while (commentController.paused) {
-// 			await sleep(300);
-// 		}
-// 		if (commentController.stopped || commentController.cancled) {
-// 			return;
-// 		}
-		
-// 		const batch = comments.slice(i, i + batchSize);
-// 		const results = await Promise.all(
-// 			batch.map(async comment => {
-// 				const userRtn = await InsRequestUtils.getInsUserInfo(comment.userId);
-// 				if (userRtn.success) {
-// 					const userData = userRtn.data;
-// 					comment.email = userData.email;
-// 					comment.phone = userData.phone;
-// 					comment.followersCount = userData.follower;
-// 					comment.followingCount = userData.following;
-// 					comment.postsCount = userData.post;
-// 				}
-// 				return comment;
-// 			})
-// 		);
-		
-// 		for (const comment of results) {
-// 			commentController.updateProcessed(1);
-// 			await commentController.success([comment]);
-// 		}
-// 		await sleep(delayMin + Math.random() * (delayMax - delayMin));
-// 	}
-// };
 
 export const calculateWaitTime = async(needWaitTime: number, downloadId: number)=>{
 	if (!commentController.isValid(downloadId)) return;

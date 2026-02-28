@@ -41,7 +41,7 @@ export class ApiUtils {
             const res = await ApiUtils.fetchWithFallback(path, {
                 method: "GET",
                 headers: {
-                    "Authorization": userInfo.token,
+                    "Authorization": userInfo.token||'',
                     "timeZone": normalBI['timeZone']
                 }
             })
@@ -75,7 +75,7 @@ export class ApiUtils {
                 body: formData,
                 headers: {
                     ...headers,
-                    "Authorization": headers?.token || userInfo.token,
+                    "Authorization": headers?.token || userInfo.token || '',
                     "timeZone": normalBI['timeZone']
                 }
             })

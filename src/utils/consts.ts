@@ -74,8 +74,14 @@ export const storageName = {
 	appConfigStorageName: "appConfig",
 	//Safety Settings Configuration Name
 	safetySettingsStorageName: "safetySettings",
-	//Successful export comments
-	successExportCommentDataStorageName: "successExportCommentData",
+	//自动关注成功（按天累计）
+	autoFollowSuccessDailyStorageName: "autoFollowSuccessDaily",
+	//自动关注成功记录（用于统计近 7 天新增关注等）
+	autoFollowSuccessRecordsStorageName: "autoFollowSuccessRecords",
+	//growth：Active Actions 列表（running/paused）
+	growthActiveTasksStorageName: "growthActiveTasks",
+	//growth：Stopped Actions 列表（近 30 天）
+	growthStoppedTasksStorageName: "growthStoppedTasks",
 	//Advanced Settings
 	advanceSettingStorageName: "advanceSetting",
 	//Reviewed the rating component time
