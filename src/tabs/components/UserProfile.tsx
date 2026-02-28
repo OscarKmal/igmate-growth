@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { User, Users, UserPlus, Crown, TrendingUp, Info, Activity } from 'lucide-react';
 import { Skeleton } from '~components/ui/skeleton';
+import browser from 'webextension-polyfill';
+import { getOrCreateUserInfo } from '~utils/functions';
+import { jumpLogin } from '~utils/commonFunction';
+import { sendToBackground } from '@plasmohq/messaging';
+import type { UserInfo } from '~modles/extension';
 
 /**
  * UserProfileProps
@@ -134,9 +139,81 @@ export function UserProfile({
   todayActionsUsed,
   todayActionsLimit
 }: UserProfileProps) {
+  /**
+   * 用途：当前插件账号信息（用于展示邮箱/判断是否登录）。
+   * 类型：UserInfo | null
+   * 可选性：必填
+   * 默认值：null
+   */
+  const [currentAppUser, setCurrentAppUser] = useState<UserInfo | null>(null);
+
+  /**
+   * 用途：插件账号是否已登录。
+   * 类型：boolean
+   * 可选性：必填
+   * 默认值：false
+   */
+  const [isPluginLoggedIn, setIsPluginLoggedIn] = useState<boolean>(false);
+
+  useEffect(() => {
+    /**
+     * 用途：初始化加载插件账号登录态。
+     */
+    void (async () => {
+      const appUserInfo = await getOrCreateUserInfo();
+      setCurrentAppUser(appUserInfo);
+      setIsPluginLoggedIn(!!appUserInfo?.token);
+    })();
+
+    /**
+     * 用途：监听后台登录/登出消息，实时刷新展示。
+     * 说明：
+     * - 登录成功后后台会 sendMessage({type:'userLoggedIn'})。
+     * - 退出登录后后台会 sendMessage({type:'userLogout'})。
+     */
+    const listener = async (msg: any) => {
+      if (msg?.type === "userLoggedIn") {
+        const appUserInfo = await getOrCreateUserInfo();
+        setCurrentAppUser(appUserInfo);
+        setIsPluginLoggedIn(true);
+      } else if (msg?.type === "userLogout") {
+        const appUserInfo = await getOrCreateUserInfo();
+        setCurrentAppUser(appUserInfo);
+        setIsPluginLoggedIn(false);
+      }
+    };
+
+    browser.runtime.onMessage.addListener(listener);
+    return () => {
+      browser.runtime.onMessage.removeListener(listener);
+    };
+  }, []);
+
   const todayRemaining = todayActionsLimit - todayActionsUsed;
-  const safeLimit = todayActionsLimit > 0 ? todayActionsLimit : 1;
-  const progressPercent = (todayActionsUsed / safeLimit) * 100;
+  const mockPremiumLimit = 99999;
+  const safeLimitRaw = isPremium ? mockPremiumLimit : todayActionsLimit;
+  const safeLimit = safeLimitRaw > 0 ? safeLimitRaw : 1;
+  const progressPercent = Math.min(100, Math.max(0, (todayActionsUsed / safeLimit) * 100));
+
+  /**
+   * 用途：处理“插件账号登录/退出”。
+   * 说明：
+   * - 未登录：跳转到 web 登录页。
+   * - 已登录：调用后台 logout 并等待广播消息刷新 UI。
+   */
+  const handlePluginLoginClick = async (): Promise<void> => {
+    if (!isPluginLoggedIn) {
+      jumpLogin();
+      return;
+    }
+
+    await sendToBackground({
+      name: "webMsg",
+      body: {
+        type: "logout"
+      }
+    });
+  };
 
   // Determine safety status
   const getSafetyStatus = () => {
@@ -190,6 +267,18 @@ export function UserProfile({
                 <Crown className="w-3 h-3" />
                 <span>{isPremium ? 'Premium' : 'Free'}</span>
               </button>
+
+			  <button
+				type="button"
+				onClick={() => void handlePluginLoginClick()}
+				className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors ${
+					isPluginLoggedIn
+						? 'bg-purple-600 text-white hover:bg-purple-700'
+						: 'bg-white border border-purple-200 text-purple-700 hover:bg-purple-50'
+				}`}
+			  >
+				<span>{isPluginLoggedIn ? 'Logout' : 'Login'}</span>
+			  </button>
             </div>
             <div className="text-sm text-gray-500">
               {loading ? (
@@ -198,6 +287,11 @@ export function UserProfile({
                 username ? `@${username}` : '-'
               )}
             </div>
+			{!loading && isPluginLoggedIn && (
+				<div className="text-xs text-gray-400 mt-1">
+					{currentAppUser?.email || '-'}
+				</div>
+			)}
           </div>
         </div>
 
@@ -264,8 +358,14 @@ export function UserProfile({
               </>
             ) : (
               <>
-                <span>{todayActionsUsed} / {todayActionsLimit}</span>
-                <span className="font-medium text-gray-700">{todayRemaining} left</span>
+                {isPremium ? (
+                  <span>{todayActionsUsed} / ∞</span>
+                ) : (
+                  <>
+                    <span>{todayActionsUsed} / {todayActionsLimit}</span>
+                    <span className="font-medium text-gray-700">{todayRemaining} left</span>
+                  </>
+                )}
               </>
             )}
           </div>

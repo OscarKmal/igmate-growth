@@ -63,3 +63,56 @@ export const getTaskTypeFromTitle = (title: string): TaskType => {
   if (title.toLowerCase().includes('unfollow') || title.toLowerCase().includes('clean')) return 'unfollow';
   return 'competitor-follow'; // default
 };
+
+/**
+ * 获取任务在 UI 中展示的标题（动态区分子模式，但不改变 TaskType）。
+ *
+ * 用途：
+ * - 在 Active/Stopped Actions 中展示更精确的任务标题。
+ * - competitor-follow：区分 followers / following。
+ * - post-follow：区分 likers / commenters / both。
+ *
+ * 参数：
+ * - params：任务最小信息。
+ *   - type：TaskType；主任务类型。
+ *   - title：string；原始标题（兜底用）。
+ *   - sourceInput：string；用户输入（优先用于展示括号内容）。
+ *   - competitorEdge："followers" | "following"；竞对来源模式。
+ *   - postSourceMode："likers" | "commenters" | "both"；帖子来源模式。
+ *
+ * 返回值：
+ * - string：展示标题。
+ */
+export const getTaskDisplayTitle = (params: {
+  type: TaskType;
+  title?: string;
+  sourceInput?: string;
+  competitorEdge?: "followers" | "following";
+  postSourceMode?: "likers" | "commenters" | "both";
+}): string => {
+  const base = TASK_TYPES[params.type]?.label || params.type;
+  const input = (params.sourceInput || "").trim();
+  const inputPart = input ? ` (${input})` : "";
+
+  if (params.type === "competitor-follow") {
+    const edge = params.competitorEdge || "followers";
+    const suffix = edge === "following" ? " (Following)" : " (Followers)";
+    return `${base}${suffix}${inputPart}`;
+  }
+
+  if (params.type === "post-follow") {
+    const mode = params.postSourceMode || "both";
+    const suffix = mode === "likers" ? " (Likers)" : mode === "commenters" ? " (Commenters)" : " (Likers+Commenters)";
+    return `${base}${suffix}${inputPart}`;
+  }
+
+  if (params.type === "csv-follow") {
+    return `${base}${inputPart}`;
+  }
+
+  if (params.type === "unfollow") {
+    return `${base}${inputPart}`;
+  }
+
+  return params.title || `${base}${inputPart}`;
+};

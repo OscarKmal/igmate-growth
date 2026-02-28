@@ -19,10 +19,12 @@ import {
 import {
   getTaskTypeFromTitle,
   getTaskTypeConfig,
+  getTaskDisplayTitle,
 } from "~utils/taskTypes";
 import { normalizeInsAvatarUrl } from "~utils/insAvatarUtils";
 import ConfirmDialog from "./ConfirmDialog";
-import { MembershipModal } from "./MembershipModal";
+import { FollowUpgradeDialog } from "./FollowUpgradeDialog";
+import { cleanNonFollowers } from "~utils/cleanNonFollowers";
 import {
   deleteActiveGrowthTask,
   deleteStoppedGrowthTask,
@@ -39,6 +41,9 @@ import { refreshActiveTasksFollowBackCounts } from "~utils/followBackStats";
 interface ActionCenterProps {
   isPremium: boolean;
   onCreateTask: () => void;
+  todayActionsUsed?: number;
+  todayActionsLimit?: number;
+  onDailyLimitReached?: () => void;
   onOpenSettings?: () => void;
   hasActiveTasks?: boolean;
 }
@@ -46,6 +51,9 @@ interface ActionCenterProps {
 export function ActionCenter({
   isPremium,
   onCreateTask,
+  todayActionsUsed,
+  todayActionsLimit,
+  onDailyLimitReached,
   onOpenSettings,
   hasActiveTasks,
 }: ActionCenterProps) {
@@ -119,17 +127,33 @@ export function ActionCenter({
     return activeTasks.some((t) => t.status === "running");
   }, [activeTasks]);
 
+  const isFreeDailyLimitReached = useMemo(() => {
+    const used = typeof todayActionsUsed === "number" ? todayActionsUsed : 0;
+    const limit = typeof todayActionsLimit === "number" ? todayActionsLimit : 0;
+    if (isPremium) return false;
+    if (!Number.isFinite(limit) || limit <= 0) return false;
+    return used >= limit;
+  }, [isPremium, todayActionsLimit, todayActionsUsed]);
+
   const handleCleanNonFollowers = (taskId: string) => {
     if (!isPremium) {
       setShowMembershipModal(true);
       return;
     }
-    
+
     setCleaningTaskId(taskId);
-    // 模拟清理过程
-    setTimeout(() => {
-      setCleaningTaskId(null);
-    }, 3000);
+    void (async () => {
+      try {
+        const snapshot = await getGrowthTaskSnapshot();
+        const isActive = snapshot.activeTasks.some((t) => t?.id === taskId);
+        await cleanNonFollowers({
+          taskId,
+          taskScope: isActive ? "active" : "stopped"
+        });
+      } finally {
+        setCleaningTaskId(null);
+      }
+    })();
   };
 
   const handleCancelTask = (taskId: string) => {
@@ -139,6 +163,11 @@ export function ActionCenter({
   };
 
   const handleNewAction = () => {
+    if (isFreeDailyLimitReached) {
+      onDailyLimitReached?.();
+      return;
+    }
+
     // 检查是否有运行中的任务
     if (hasRunningTask) {
       setConfirmType('newAction');
@@ -156,6 +185,10 @@ export function ActionCenter({
         await stopGrowthTask(taskToCancel, 'user_cancel');
         setTaskToCancel(null);
       } else if (confirmType === 'newAction') {
+        if (isFreeDailyLimitReached) {
+          onDailyLimitReached?.();
+          return;
+        }
         onCreateTask();
       }
     } finally {
@@ -177,6 +210,10 @@ export function ActionCenter({
         setOpType("pause");
         await pauseGrowthTask(task.id);
       } else {
+        if (isFreeDailyLimitReached) {
+          onDailyLimitReached?.();
+          return;
+        }
         setOpType("resume");
         await startGrowthTask(task.id);
       }
@@ -317,8 +354,9 @@ export function ActionCenter({
 
       {/* Membership Modal */}
       {showMembershipModal && (
-        <MembershipModal
-          onClose={() => setShowMembershipModal(false)}
+        <FollowUpgradeDialog
+        	open={showMembershipModal}
+        	onOpenChange={setShowMembershipModal}
         />
       )}
 
@@ -376,8 +414,7 @@ function ActionCard({
 
   const safeTotal = task.total > 0 ? task.total : 1;
   const progressPercent = (task.progress / safeTotal) * 100;
-  const taskType = getTaskTypeFromTitle(task.title);
-  const taskTypeConfig = getTaskTypeConfig(taskType);
+  const taskTypeConfig = getTaskTypeConfig(task.type);
   const TaskIcon = taskTypeConfig.icon;
   const isPaused = task.status === "paused";
   const isOperating = opTaskId === task.id && (opType === "pause" || opType === "resume" || opType === "stop");
@@ -388,8 +425,8 @@ function ActionCard({
 
   // Determine if task has a link URL
   const hasLinkUrl =
-    taskType === "competitor-follow" ||
-    taskType === "post-follow";
+    task.type === "competitor-follow" ||
+    task.type === "post-follow";
 
   const handleOpenLink = () => {
     if (task.sourceUrl) {
@@ -438,7 +475,7 @@ function ActionCard({
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h3 className="text-base font-medium text-gray-900">
-                {task.title}
+                {getTaskDisplayTitle(task)}
               </h3>
               {/* Link Button */}
               {hasLinkUrl && task.sourceUrl && (
@@ -746,8 +783,7 @@ function CompletedTaskItem({
   opTaskId: string | null;
   opType: "pause" | "resume" | "stop" | "deleteStopped" | null;
 }) {
-  const taskType = getTaskTypeFromTitle(task.title);
-  const taskTypeConfig = getTaskTypeConfig(taskType);
+  const taskTypeConfig = getTaskTypeConfig(task.type);
   const TaskIcon = taskTypeConfig.icon;
   const followedCount = task.followedCount ?? 0;
   const followedBackCount = task.followedBackCount ?? 0;
@@ -757,8 +793,8 @@ function CompletedTaskItem({
 
   // Determine if task has a link URL
   const hasLinkUrl =
-    taskType === "competitor-follow" ||
-    taskType === "post-follow";
+    task.type === "competitor-follow" ||
+    task.type === "post-follow";
 
   const handleOpenLink = () => {
     if (task.sourceUrl) {
@@ -794,7 +830,7 @@ function CompletedTaskItem({
               <div>
                 <div className="flex items-center gap-2">
                   <h4 className="text-base font-medium text-gray-900">
-                    {task.title}
+                    {getTaskDisplayTitle(task)}
                   </h4>
                   {/* Link Button */}
                   {hasLinkUrl && task.sourceUrl && (

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import "~styles/index.css";
-import {UserProfile, ActionCenter, CreateTask, MembershipModal, SettingsDialog} from './components'
+import {UserProfile, ActionCenter, CreateTask, MembershipModal, SettingsDialog, DailyFollowOverDialog, FollowUpgradeDialog} from './components'
 import { useGrowthPageModel } from '~utils/growthPageModel';
 
 export default function TabPage() {
@@ -9,11 +9,25 @@ export default function TabPage() {
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showMembership, setShowMembership] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showDailyFollowOverDialog, setShowDailyFollowOverDialog] = useState(false);
+  const [showReferralDialog, setShowReferralDialog] = useState(false);
 
   const handleSaveSettings = async () => {
     await actions.saveSafetySettings();
     setShowSettings(false);
   };
+
+  const isPremium = state.profileData?.appUser.memberName === 'premium';
+  const todayActionsUsed = state.profileData?.todayActionsUsed ?? 0;
+  const todayActionsLimit = state.profileData?.todayActionsLimit ?? Number(process.env.PLASMO_PUBLIC_FREE_USER_DAILY_LIMIT);
+
+  useEffect(() => {
+    if (isPremium) return;
+    if (!Number.isFinite(todayActionsLimit) || todayActionsLimit <= 0) return;
+    if (todayActionsUsed >= todayActionsLimit) {
+      setShowDailyFollowOverDialog(true);
+    }
+  }, [isPremium, todayActionsLimit, todayActionsUsed]);
 
   return (
     <div className="bg-gray-50">
@@ -28,7 +42,7 @@ export default function TabPage() {
 			following={state.profileData?.following ?? 0}
 			followersGrowth7d={state.profileData?.followersGrowth7d ?? 0}
 			followingGrowth7d={state.profileData?.followingGrowth7d ?? 0}
-			isPremium={state.profileData?.appUser.memberName === 'premium'}
+			isPremium={isPremium}
 			todayActionsUsed={state.profileData?.todayActionsUsed ?? 0}
 			todayActionsLimit={state.profileData?.todayActionsLimit ?? Number(process.env.PLASMO_PUBLIC_FREE_USER_DAILY_LIMIT)}
 			onMembershipClick={() => setShowMembership(true)}
@@ -37,7 +51,10 @@ export default function TabPage() {
 		  {/* Action Center - Main Content */}
 		  <div className="mt-6">
 			<ActionCenter
-			  isPremium={state.profileData?.appUser.memberName === 'premium'}
+			  isPremium={isPremium}
+			  todayActionsUsed={todayActionsUsed}
+			  todayActionsLimit={todayActionsLimit}
+			  onDailyLimitReached={() => setShowDailyFollowOverDialog(true)}
 			  onCreateTask={() => setShowCreateTask(true)}
         onOpenSettings={() => setShowSettings(true)}
 			  hasActiveTasks={true}
@@ -75,8 +92,20 @@ export default function TabPage() {
 
 		  {/* Membership Modal */}
 		  {showMembership && (
-			<MembershipModal onClose={() => setShowMembership(false)} />
+			<FollowUpgradeDialog
+				open={showMembership}
+				onOpenChange={setShowMembership}
+			/> 
 		  )}
+			
+			{/* daily unfollow over Dialog */}
+			<DailyFollowOverDialog
+				open={showDailyFollowOverDialog}
+				onOpenChange={setShowDailyFollowOverDialog}
+				dailyUsedCount={todayActionsUsed}
+				freeUserDailyLimit={todayActionsLimit}
+				setShowReferralDialog={setShowReferralDialog}
+			/>
 		</div>
 	</div>
   );

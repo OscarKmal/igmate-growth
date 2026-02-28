@@ -82,9 +82,9 @@ export const PremiumUpgradeCard: React.FC<PremiumUpgradeCardProps> = ({
 
         {/* Message */}
         <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-amber-200">
-          {/* <p className="text-sm text-gray-700 mb-3">
-            {t("premium_upgrade_subscribe_to_export_comments")}
-          </p> */}
+          <p className="text-sm text-gray-700 mb-3">
+            {t("premium_upgrade_subscribe_to_follow")}
+          </p>
 
           {/* Features List */}
           <div className="space-y-2">
@@ -93,17 +93,25 @@ export const PremiumUpgradeCard: React.FC<PremiumUpgradeCardProps> = ({
                 <Check className="h-3 w-3 text-white" />
               </div>
               <span className="text-sm text-gray-700">
-                {t("premium_upgrade_unlimited_daily_export")}
+                {t("premium_upgrade_unlimited_daily_follow")}
               </span>
             </div>
-            {/* <div className="flex items-start gap-2">
+			<div className="flex items-start gap-2">
+			  <div className="mt-0.5 p-0.5 rounded-full bg-gradient-to-br from-emerald-400 to-green-500">
+			    <Check className="h-3 w-3 text-white" />
+			  </div>
+			  <span className="text-sm text-gray-700">
+			    {t("premium_upgrade_unlimited_clean_nofollow")}
+			  </span>
+			</div>
+            <div className="flex items-start gap-2">
               <div className="mt-0.5 p-0.5 rounded-full bg-gradient-to-br from-emerald-400 to-green-500">
                 <Check className="h-3 w-3 text-white" />
               </div>
               <span className="text-sm text-gray-700">
                 {t("premium_upgrade_more")}
               </span>
-            </div> */}
+            </div>
           </div>
         </div>
 

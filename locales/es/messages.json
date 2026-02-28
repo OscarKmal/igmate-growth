@@ -1,33 +1,15 @@
 {
   "extensionName": {
-    "message": "Exportador de Comentarios de Instagram Reels y Posts a CSV - IGMate"
+    "message": "Instagram Growth"
   },
   "extensionDescription": {
-    "message": "Exporta miles de comentarios de publicaciones y reels rápido a CSV/Excel. Ideal para sorteos y análisis."
+    "message": "Instagram Growth"
   },
   "support_subject": {
-	"message": "Ask help for Instagram Reels & Post Comments Exporter to CSV- IGMate"
+	"message": "Ask help for Instagram Growth"
   },
   "support_body": {
   	"message": "Hi, I have some issues when using the extension, need your help:"  
-  },
-  "pop_menu_account": {
-    "message": "Extension account"
-  },
-  "pop_menu_feedback": {
-    "message": "Customer feedback"
-  },
-  "pop_menu_support": {
-    "message": "Customer support"
-  },
-  "pop_menu_logout": {
-    "message": "Sign out"
-  },
-  "pop_menu_unlogin": {
-    "message": "Login"
-  },
-  "pop_btn_login_ins": {
-    "message": "Login Instagram"
   },
   "premium_upgrade_monthly_limit_reached": {
 	"message": "Monthly Limit"
@@ -48,13 +30,16 @@
     "message": "views"
   },
   "premium_upgrade_comments": {
-    "message": "export comments"
+    "message": "follow"
   },
-  "premium_upgrade_subscribe_to_export_comments": {
-    "message": "Subscribe to export comments unlimitly"
+  "premium_upgrade_subscribe_to_follow": {
+    "message": "Subscribe to follow unlimitly"
   },
-  "premium_upgrade_unlimited_daily_export": {
-    "message": "Upgrade to export unlimitly"
+  "premium_upgrade_unlimited_daily_follow": {
+    "message": "Upgrade to follow unlimitly"
+  },
+  "premium_upgrade_unlimited_clean_nofollow": {
+    "message": "Upgrade to Clean Non-Followers"
   },
   "premium_upgrade_more": {
     "message": "More..."
@@ -62,450 +47,39 @@
   "premium_upgrade_view_plans": {
     "message": "View Plans"
   },
-  "pop_guide_title": {
-    "message": "User Guide"
-  },  
-  "pop_guide_desc": {
-    "message": "Quickly learn how to use"
-  },
-  "pop_guide_quikstart": {
-    "message": "Quick Start"
-  },
-  "pop_guide_quik_title1": {
-    "message": "Copy Instagram post's or Reels' link"
-  },
-  "pop_guide_quik_desc1": {
-    "message": "Click the three dots in the top-right corner of the post and select Copy link"
-  },
-  "pop_guide_quik_title2": {
-    "message": "Paste Link into extension"
-  },
-  "pop_guide_quik_desc2": {
-    "message": "Paste the post link you just copied. Tip: If you open the extension on the post details page, the post link should be pasted automatically."
-  },
-  "pop_guide_quik_title3": {
-    "message": "Start downloading"
-  },
-  "pop_guide_quik_desc3": {
-    "message": "Click Start downloading"
-  },
-  "pop_guide_quik_title4": {
-    "message": "Start downloading and exporting"
-  },
-  "pop_guide_quik_desc4": {
-    "message": "Supports CSV, Excel, and JSON formats"
-  },
-  "pop_guide_tip_title": {
-    "message": "Kind Reminder"
-  },
-  "pop_guide_tip1": {
-    "message": "Advanced fields such as email and phone require longer download times"
-  },
-  "pop_guide_tip2": {
-    "message": "Suggest using balanced mode security settings to reduce the risk of account suspension"
-  },
-  "pop_guide_tip3": {
-    "message": "You can pause and resume at any time during the download process"
-  },
-  "pop_guide_tip4": {
-    "message": "The historical records will be saved for easy re export at any time"
-  },
-  "pop_guide_start": {
-    "message": "Get started"
-  },
-  "pop_guide_know": {
-    "message": "I see"
-  },
-  "pop_input_title": {
-    "message": "Instagram post link"
-  },
-  "pop_input_wh": {
-	"message": "How to get link?"  
-  },
-  "pop_validate_tip1": {
-    "message": "Please enter the Instagram link"
-  },
-  "pop_validate_tip2": {
-    "message": "Please enter a valid Instagram post or Reels link"
-  },
-  "pop_validate_tip3": {
-    "message": "The link is valid and you can start downloading"
-  },
-  "pop_validate_tip": {
-    "message": "Support Post and Reels type posts"
-  },
-  "pop_btn_start": {
-    "message": "Start downloading comments"
-  },
-  "pop_his_title": {
-    "message": "Recently downloaded"
-  },
-  "pop_his_unit": {
-    "message": "records"
-  },
-  "pop_his_btn": {
-    "message": "View all history"
-  },
-  "pop_his_nodata": {
-    "message": "No download records available at the moment"
-  },
   "pop_home_app_name": {
     "message": "IG Growth Pro"
   },
   "pop_home_slogan": {
-    "message": "Asistente de crecimiento inteligente"
+    "message": "Smart growth assistant"
   },
   "pop_home_why_choose_us": {
-    "message": "¿Por qué elegirnos?"
+    "message": "Why choose us?"
   },
   "pop_home_value1_title": {
-    "message": "Seguimiento masivo inteligente"
+    "message": "Smart bulk follow"
   },
   "pop_home_value1_desc": {
-    "message": "Obtén automáticamente usuarios objetivo desde competidores y publicaciones en tendencia"
+    "message": "Automatically find target users from competitors and trending posts"
   },
   "pop_home_value2_title": {
-    "message": "Filtrado preciso"
+    "message": "Precision filtering"
   },
   "pop_home_value2_desc": {
-    "message": "Filtra cuentas de alta calidad para mejorar la tasa de seguimiento de vuelta"
+    "message": "Filter high-quality accounts to improve follow-back rate"
   },
   "pop_home_value3_title": {
-    "message": "Análisis de rendimiento"
+    "message": "Performance analytics"
   },
   "pop_home_value3_desc": {
-    "message": "Sigue los resultados en tiempo real y optimiza tu estrategia de crecimiento"
+    "message": "Track results in real time and optimize your growth strategy"
   },
   "pop_home_cta_start": {
-    "message": "Comenzar"
+    "message": "Get started"
   },
   "pop_home_footer_tip": {
-    "message": "Hasta 140 seguimientos por día · Control de ritmo seguro"
+    "message": "Up to 140 follows per day · Safe rate control"
   },
-  "tab_header_feedback": {
-    "message": "Feedback"
-  },
-  "tab_header_support": {
-    "message": "Support"
-  },
-  "tab_header_his": {
-    "message": "Download History"
-  },
-  "tab_new_title": {
-    "message": "Start new download"
-  },
-  "tab_new_btn": {
-    "message": "Start download"
-  },
-  "tab_new_tip_title": {
-    "message": "Supported link formats:"
-  },
-  "tab_new_tip_post": {
-    "message": "Post: https://www.instagram.com/p/xxx"
-  },
-  "tab_new_tip_reels": {
-    "message": "Reels: https://www.instagram.com/reel/xxx"
-  },
-  "feedback_return": {
-    "message": "return"
-  },
-  "tab_post_redownload": {
-    "message": "Re Download"
-  },
-  "tab_post_newdownload": {
-    "message": "New Download"
-  },
-  "tab_complete_title": {
-    "message": "Download completed!"
-  },
-  "tab_complete_desc": {
-    "message": "All comments have been successfully downloaded"
-  },
-  "tab_complete_downloads_title": {
-    "message": "Total downloads"
-  },
-  "tab_complete_downloads_desc": {
-    "message": "records"
-  },
-  "tab_complete_time_title": {
-    "message": "Total time taken"
-  },
-  "tab_complete_completion": {
-    "message": "Completion time"
-  },
-  "tab_excel_btn": {
-    "message": "Export Excel"
-  },
-  "tab_csv_btn": {
-    "message": "Export CSV"
-  },
-  "tab_json_btn": {
-    "message": "Export JSON"
-  },
-  "tab_advanced_fields": {
-    "message": "Advanced fields have been selected, download time will be longer"
-  },
-  "tab_downloading_fields": {
-    "message": "Advanced fields have been selected, download time will be longer"
-  },
-  "tab_downloading_spend": {
-    "message": "Spent time"
-  },
-  "tab_downloading_estimated": {
-    "message": "estimated remaining"
-  },
-  "tab_downloading_time_tip": {
-    "message": "In the process of calculation .."
-  },
-  "tab_downloading_resume": {
-    "message": "Resume"
-  },
-  "tab_downloading_pause": {
-    "message": "Pause"
-  },
-  "tab_downloading_settings": {
-    "message": "Settings"
-  },
-  "tab_downloading_paused_tip": {
-    "message": "Download paused, click 'Resume' to continue downloading"
-  },
-  "tab_downloading_extended_tip": {
-    "message": "Obtaining advanced field data, expected to take a long time .."
-  },
-  "tab_table_title": {
-    "message": "Comment list"
-  },
-  "tab_table_page_last": {
-    "message": "Previous"
-  },
-  "tab_table_page_next": {
-    "message": "Next"
-  },
-  "tab_download_complete": {
-	"message": "Download Complete!"
-  },
-  "tab_download_success": {
-    "message": "Your data has been successfully downloaded"
-  },
-  "tab_download_comments": {
-    "message": "Export comments"
-  },
-  "tab_download_save_time": {
-    "message": "save time"
-  },
-  "tab_download_rating_question": {
-    "message": "How satisfied are you with this download?"
-  },
-  "tab_download_skip": {
-    "message": "Skip"
-  },
-  "tab_download_thank_you": {
-    "message": "Thank You!"
-  },
-  "tab_download_feedback_meaning": {
-    "message": "Your feedback means the world to us"
-  },
-  "tab_download_feedback_note": {
-    "message": "We're constantly improving our tools to serve you better. Your {rating}-star rating helps us understand what we're doing right!"
-  },
-  "tab_download_rate_chrome": {
-    "message": "Rate Us on Chrome Store"
-  },
-  "tab_download_share_feedback": {
-    "message": "Share Your Feedback"
-  },
-  "tab_download_close": {
-    "message": "Close"
-  },
-  "tab_his_title": {
-    "message": "Download History"
-  },
-  "tab_his_re_btn": {
-    "message": "Re export"
-  },
-  "tab_his_del_btn": {
-    "message": "Delete"
-  },
-  "tab_settings_title": {
-    "message": "Safe Settings"
-  },
-  "tab_settings_fields": {
-    "message": "Download Fields"
-  },
-  "tab_settings_speed": {
-    "message": "Speed Control"
-  },
-  "tab_settings_fields_label": {
-    "message": "Select export fields"
-  },
-  "tab_settings_fields_badge": {
-    "message": "Contains advanced fields"
-  },
-  "tab_settings_fields_basic": {
-    "message": "Basic Fields (Quick)"
-  },
-  "tab_settings_fields_advanced": {
-    "message": "Advanced fields (time-consuming)"
-  },
-  "tab_settings_fields_tip": {
-    "message": "These fields require additional API requests, which will significantly increase download time"
-  },
-  "tab_settings_speed_label": {
-    "message": "security settings"
-  },
-    "tab_settings_description": {
-      "message": "Adjust settings to prevent account blocking (changes apply immediately)"
-    },
-    "tab_settings_interval": {
-      "message": "Interval"
-    },
-    "tab_settings_selected": {
-      "message": "Selected"
-    },
-    "tab_settings_advanced": {
-      "message": "Advanced Settings"
-    },
-    "tab_settings_advanced_warning": {
-      "message": "For advanced users only. Incorrect settings may increase ban risk."
-    },
-    "tab_settings_request_interval": {
-      "message": "Request Interval"
-    },
-    "tab_settings_failure_pause": {
-      "message": "Failure Pause"
-    },
-    "tab_settings_seconds": {
-      "message": "seconds"
-    },
-    "tab_settings_request_interval_desc": {
-      "message": "Time between each unfollow request"
-    },
-    "tab_settings_failure_pause_desc": {
-      "message": "Pause duration if unfollow fails"
-    },
-    "tab_settings_active": {
-      "message": "Active Settings"
-    },
-    "tab_settings_save": {
-      "message": "Save"
-    },
-    "tab_settings_preset_name_low": {
-      "message": "Low"
-    },
-    "tab_settings_preset_description_low": {
-      "message": "Safe and slow, minimal risk of being blocked."
-    },
-    "tab_settings_preset_name_medium": {
-      "message": "Medium"
-    },
-    "tab_settings_preset_description_medium": {
-      "message": "Balanced speed and safety."
-    },
-    "tab_settings_preset_name_high": {
-      "message": "High"
-    },
-    "tab_settings_preset_description_high": {
-      "message": "Fast and aggressive, higher risk of being blocked."
-    },
-	"tab_upgrade_desc": {
-	  "message": "Free users can check unfollower list once a month. You've used: 1/1 views"
-	},
-	"tab_upgrade_btn": {
-	  "message": "Check it Next Month"
-	},
-	"tab_unfollow_result_bulk_complete": {
-	    "message": "Mass Unfollow Complete!"
-	  },
-	  "tab_unfollow_result_bulk_stopped": {
-	    "message": "Mass Unfollow Stopped"
-	  },
-	  "tab_unfollow_result_stopped_desc": {
-	    "message": "Stopped by user. {count} users unfollowed"
-	  },
-	  "tab_unfollow_result_complete_desc": {
-	    "message": "Successfully unfollowed users"
-	  },
-	  "tab_unfollow_result_unfollowed": {
-	    "message": "Unfollowed"
-	  },
-	  "tab_unfollow_result_click_to_download": {
-	    "message": "Click to download Excel"
-	  },
-	  "tab_unfollow_result_duration": {
-	    "message": "Duration"
-	  },
-	  "tab_unfollow_result_rating_question": {
-	    "message": "How satisfied are you with this Extension?"
-	  },
-	  "tab_unfollow_result_rating_title": {
-	    "message": "Rate Your Experience"
-	  },
-	  "tab_unfollow_result_rating_download_question": {
-	    "message": "How satisfied are you with the download?"
-	  },
-	  "tab_unfollow_result_skip": {
-	    "message": "Skip"
-	  },
-	  "tab_unfollow_result_share_success": {
-	    "message": "Share Your Success"
-	  },
-	  "tab_unfollow_result_excel_downloaded": {
-	    "message": "Excel Downloaded!"
-	  },
-	  "tab_unfollow_result_excel_desc": {
-	    "message": "Your unfollowed users list has been saved"
-	  },
-	  "tab_unfollow_result_thank_you": {
-	    "message": "Thank You!"
-	  },
-	  "tab_unfollow_result_feedback_desc": {
-	    "message": "Your feedback means the world to us"
-	  },
-	  "tab_unfollow_result_feedback_message": {
-	    "message": "We're constantly improving our tools to serve you better. Your {rating}-star rating helps us understand what we're doing right!"
-	  },
-	  "tab_unfollow_result_rate_chrome_store": {
-	    "message": "Rate Us on Chrome Store"
-	  },
-	  "tab_unfollow_result_share_feedback": {
-	    "message": "Share Your Feedback"
-	  },
-	  "tab_unfollow_result_close": {
-	    "message": "Close"
-	  },
-	  "tab_unfollow_result_share_title": {
-	    "message": "Share Your Success! 🎉"
-	  },
-	  "tab_unfollow_result_share_desc": {
-	    "message": "Show off your Instagram cleanup journey"
-	  },
-	  "tab_unfollow_result_choose_vibe": {
-	    "message": "Choose your vibe"
-	  },
-	  "tab_unfollow_result_share_howto_title": {
-	    "message": "How to share to Instagram"
-	  },
-	  "tab_unfollow_result_share_howto_steps1": {
-	    "message": "Click \"Download Image\" below"
-	  },
-	  "tab_unfollow_result_share_howto_steps2": {
-	    "message": "Open Instagram app on your phone"
-	  },
-	  "tab_unfollow_result_share_howto_steps3": {
-	    "message": "Create a new Story or Post"
-	  },
-	  "tab_unfollow_result_share_howto_steps4": {
-	    "message": "Upload the downloaded image"
-	  },
-	  "tab_unfollow_result_share_howto_steps5": {
-	    "message": "Tag us @instaunfollower 📸"
-	  },
-	  "tab_unfollow_result_download_image": {
-	    "message": "Download Image For Share"
-	  },
-	  "tab_unfollow_result_maybe_later": {
-	    "message": "Maybe Later"
-	  },
   "feedback_title": {
     "message": "Customer feedback"
   },
@@ -562,5 +136,65 @@
   },
   "feedback_toast_fail": {
     "message": "Failed to submit feedback, please try again later!"
+  },
+  "tab_settings_title": {
+    "message": "Safety settings"
+  },
+  "tab_settings_description": {
+    "message": "Adjust settings to prevent account blocking (changes apply immediately)"
+  },
+  "tab_settings_choose_preset": {
+    "message": "Choose Preset"
+  },
+  "tab_settings_interval": {
+    "message": "Interval"
+  },
+  "tab_settings_selected": {
+    "message": "Selected"
+  },
+  "tab_settings_advanced": {
+    "message": "Advanced Settings"
+  },
+  "tab_settings_advanced_warning": {
+    "message": "For advanced users only. Incorrect settings may increase ban risk."
+  },
+  "tab_settings_request_interval": {
+    "message": "Request Interval"
+  },
+  "tab_settings_failure_pause": {
+    "message": "Failure Pause"
+  },
+  "tab_settings_seconds": {
+    "message": "seconds"
+  },
+  "tab_settings_request_interval_desc": {
+    "message": "Time between each unfollow request"
+  },
+  "tab_settings_failure_pause_desc": {
+    "message": "Pause duration if unfollow fails"
+  },
+  "tab_settings_active": {
+    "message": "Active Settings"
+  },
+  "tab_settings_save": {
+    "message": "Save"
+  },
+  "tab_settings_preset_name_low": {
+    "message": "Low"
+  },
+  "tab_settings_preset_description_low": {
+    "message": "Safe and slow, minimal risk of being blocked."
+  },
+  "tab_settings_preset_name_medium": {
+    "message": "Medium"
+  },
+  "tab_settings_preset_description_medium": {
+    "message": "Balanced speed and safety."
+  },
+  "tab_settings_preset_name_high": {
+    "message": "High"
+  },
+  "tab_settings_preset_description_high": {
+    "message": "Fast and aggressive, higher risk of being blocked."
   }
 }

@@ -223,6 +223,19 @@ export interface GrowthTask {
   cleanedCount?: number;
 
   /**
+   * 用途：已清理（已取关）的用户 id 列表。
+   * 类型：string[]
+   * 可选性：可选
+   * 默认值：[]
+   *
+   * 说明：
+   * - 用于“清理未回关（取关）”功能的幂等控制。
+   * - 当用户多次点击 Clean 时，需要跳过已经取关成功过的 userId，避免 cleanedCount 重复累加。
+   * - 该字段会持久化到 storage（Active/Stopped 均可存在）。
+   */
+  cleanedUserIds?: string[];
+
+  /**
    * 用途：今日已执行动作数（用于 UI 展示）。
    * 类型：number
    * 可选性：可选
@@ -547,6 +560,33 @@ export async function patchActiveGrowthTask(
     t?.id === taskId ? ({ ...t, ...patch, updatedAt: now } as GrowthTask) : t
   );
   await writeActiveTasks(next);
+  return getGrowthTaskSnapshot();
+}
+
+/**
+ * 更新 Stopped Task（按 id 合并 patch）。
+ *
+ * 用途：
+ * - 在 Stopped Actions 中对历史任务做“清理未回关（取关）”等补充操作时，回写 cleanedCount 等统计字段。
+ * - 仅更新 Stopped Tasks 列表，不影响 Active Tasks。
+ *
+ * 参数：
+ * - taskId：string；任务 id。
+ * - patch：Partial<GrowthTask>；需要合并的字段（例如 cleanedCount）。
+ *
+ * 返回值：
+ * - Promise<GrowthTaskSnapshot>
+ */
+export async function patchStoppedGrowthTask(
+  taskId: string,
+  patch: Partial<GrowthTask>
+): Promise<GrowthTaskSnapshot> {
+  const now = Date.now();
+  const stopped = await readStoppedTasks();
+  const next: StoppedGrowthTask[] = stopped.map((t) =>
+    t?.id === taskId ? ({ ...t, ...patch, updatedAt: now } as StoppedGrowthTask) : t
+  );
+  await writeStoppedTasks(trimStoppedTasks(next));
   return getGrowthTaskSnapshot();
 }
 

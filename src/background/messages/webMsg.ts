@@ -79,7 +79,7 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
 		}else if(type == 'logout'){
 			await logOut();
 			return res.send({success: true})
-		}else if(type == 'commentInstallConfig'){
+		}else if(type == 'growthInstallConfig'){
 			await installConfig(data);
 			return res.send({success: true})
 		}else if(type == 'extensionSetting'){

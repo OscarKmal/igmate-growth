@@ -14,10 +14,11 @@ import {
 import { parseInsUserFromSeed } from "~utils/insUserSeedParser";
 import {
   incrementAutoFollowSuccessDailyCounter,
+  getAutoFollowSuccessDailyCounter,
   recordAutoFollowSuccess
 } from "~utils/autoFollowStats";
 import { buildTaskEstimatedDaysText } from "~utils/estimateTimeUtils";
-import { getStorage, sleep } from './functions';
+import { getOrCreateUserInfo, getStorage, sleep } from './functions';
 import { storageName } from './consts';
 import type { FollowedUserRecord } from "~utils/growthTaskCenter";
 import { Fetcher } from "~utils/Fetcher";
@@ -41,6 +42,14 @@ class GrowthTaskRunner {
   private stopped: boolean = false;
   private runningLoop: boolean = false;
   private operatorUserId: string = "";
+
+  /**
+   * 用途：已关注用户记录最大保留长度。
+   * 类型：number
+   * 可选性：必填
+   * 默认值：200
+   */
+  private readonly maxFollowedUsersLen: number = 200;
 
   /**
    * 用途：固定请求耗时（秒）。
@@ -204,6 +213,88 @@ class GrowthTaskRunner {
   }
 
   /**
+   * 构造“最小化已关注用户记录”（不依赖任何额外网络请求）。
+   *
+   * 用途：
+   * - 解决 Active Actions 中 `followedUsers` 更新滞后的问题。
+   * - 在 autoFollow 成功后，先立即把最小记录写入任务，让 UI 立刻看到新增一条 followed。
+   * - 随后再异步补全 username/avatar/followers/following 等字段。
+   *
+   * 参数：
+   * - targetUserId：string；被关注的目标 userId。
+   * - followedAt：number；关注发生时间戳（毫秒），用于后续“异步补全”定位同一条记录。
+   * - followStatus：string；关注返回状态（可选）。
+   *
+   * 返回值：
+   * - FollowedUserRecord：仅包含 userId/followedAt/followStatus。
+   */
+  private buildMinimalFollowedUserRecord(targetUserId: string, followedAt: number, followStatus?: string): FollowedUserRecord {
+    return {
+      userId: targetUserId,
+      followedAt,
+      followStatus: followStatus || ""
+    };
+  }
+
+  /**
+   * 将“已关注用户记录”异步补全并回写到任务中。
+   *
+   * 用途：
+   * - 在已经把最小记录写入 task.followedUsers 后，再补全 username/avatar 等字段。
+   * - 避免因等待 `getInsUserInfo` 而阻塞 UI。
+   *
+   * 参数：
+   * - taskId：string；任务 id。
+   * - targetUserId：string；被关注的目标 userId。
+   * - followedAt：number；关注发生时间戳（用于定位最小记录）。
+   * - followStatus：string；关注返回状态。
+   * - seed：any；可选种子数据（competitor-follow 时可用）。
+   *
+   * 返回值：
+   * - Promise<void>
+   */
+  private async enrichFollowedUserRecordAsync(
+    taskId: string,
+    targetUserId: string,
+    followedAt: number,
+    followStatus: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    seed?: any
+  ): Promise<void> {
+    try {
+      if (!taskId || !targetUserId || !followedAt) return;
+
+      const full = await this.buildFollowedUserRecord(targetUserId, seed);
+      full.followStatus = followStatus;
+      full.followedAt = followedAt;
+
+      const snapshot = await getGrowthTaskSnapshot();
+      const latest = snapshot.activeTasks.find((t) => t?.id === taskId);
+      if (!latest) return;
+
+      const list = Array.isArray(latest.followedUsers) ? ((latest.followedUsers || []) as FollowedUserRecord[]) : [];
+
+      let replaced = false;
+      const next = list.map((u) => {
+        if (replaced) return u;
+        if (!u) return u;
+        if (u.userId === targetUserId && u.followedAt === followedAt) {
+          replaced = true;
+          return full;
+        }
+        return u;
+      });
+
+      if (!replaced) return;
+      await patchActiveGrowthTask(taskId, {
+        followedUsers: next.slice(0, this.maxFollowedUsersLen)
+      });
+    } catch {
+      // swallow
+    }
+  }
+
+  /**
    * 等待请求间隔（含随机范围）。
    */
   private async waitRequestInterval(taskId?: string) {
@@ -360,6 +451,13 @@ class GrowthTaskRunner {
           continue;
         }
 
+        // free 用户：达到当日限额则自动暂停任务，避免继续自动关注超额
+        const pausedByDailyLimit = await this.pauseRunningTaskIfDailyLimitReached(runningTask.id);
+        if (pausedByDailyLimit) {
+          await sleep(1000);
+          continue;
+        }
+
         // 尽量缓存操作者 userId（用于自动关注成功统计）。
         if (!this.operatorUserId) {
           const currentUser = await InsRequestUtils.getCurrentUser();
@@ -379,6 +477,48 @@ class GrowthTaskRunner {
       }
     } finally {
       this.runningLoop = false;
+    }
+  }
+
+  /**
+   * free 用户：当日自动关注达到限额时，自动暂停正在运行的任务。
+   *
+   * 用途：
+   * - 防止 Runner 在 free 用户超额后仍继续发起 autoFollow 请求。
+   * - UI 侧会根据 todayActionsUsed/todayActionsLimit 弹出 DailyFollowOverDialog；Runner 侧也必须兜底暂停。
+   *
+   * 参数：
+   * - taskId：string；当前 running taskId。
+   *
+   * 返回值：
+   * - Promise<boolean>
+   *   - true：本次触发了“达到限额并暂停”。
+   *   - false：未达到限额或为 premium，不做处理。
+   */
+  private async pauseRunningTaskIfDailyLimitReached(taskId: string): Promise<boolean> {
+    try {
+      if (!taskId) return false;
+
+      const appConfigData = (await getStorage(storageName.appConfigStorageName)) || {};
+      const userInfo = await getOrCreateUserInfo();
+      const isPremium = userInfo?.memberName === "premium";
+      if (isPremium) return false;
+
+      const limitRaw =
+        userInfo?.dayLimit ??
+        (appConfigData?.dayLimit ? parseInt(appConfigData.dayLimit) : parseInt(process.env.PLASMO_PUBLIC_FREE_USER_DAILY_LIMIT));
+      const limit = Number.isFinite(limitRaw) ? Number(limitRaw) : parseInt(process.env.PLASMO_PUBLIC_FREE_USER_DAILY_LIMIT);
+      if (!Number.isFinite(limit) || limit <= 0) return false;
+
+      const daily = await getAutoFollowSuccessDailyCounter();
+      const used = Number(daily?.count || 0);
+
+      if (used < limit) return false;
+
+      await pauseGrowthTask(taskId);
+      return true;
+    } catch {
+      return false;
     }
   }
 
@@ -511,24 +651,27 @@ class GrowthTaskRunner {
         const currentFollowed = latest.followedCount || 0;
         const currentToday = latest.todayActions || 0;
 
-        const newRecord = await this.buildFollowedUserRecord(targetUserId, u);
-        newRecord.followStatus = typeof followRtn.data === "string" ? followRtn.data : String(followRtn.data ?? "");
+        const followStatus = typeof followRtn.data === "string" ? followRtn.data : String(followRtn.data ?? "");
+        const followedAt = Date.now();
+        const minimal = this.buildMinimalFollowedUserRecord(targetUserId, followedAt, followStatus);
         const nextFollowedUsers = [
-          newRecord,
+          minimal,
           ...((latest.followedUsers || []) as FollowedUserRecord[])
         ];
 
-        const maxFollowedUsersLen = 200;
-
         const nextProgress = currentProgress + 1;
 
+        // 先立即回写最小记录，保证 Active Actions 及时刷新
         await patchActiveGrowthTask(latest.id, {
           progress: nextProgress,
           followedCount: currentFollowed + 1,
           todayActions: currentToday + 1,
-          followedUsers: nextFollowedUsers.slice(0, maxFollowedUsersLen),
+          followedUsers: nextFollowedUsers.slice(0, this.maxFollowedUsersLen),
           estimatedDays: this.buildEstimatedDaysText(latest.total || 0, nextProgress)
         });
+
+        // 再异步补全用户信息，不阻塞 UI
+        void this.enrichFollowedUserRecordAsync(latest.id, targetUserId, followedAt, followStatus, u);
 
         tickSuccess++;
         ops++;
@@ -726,23 +869,27 @@ class GrowthTaskRunner {
         }
 
         const nextProgress = (latest.progress || 0) + 1;
-        const newRecord = await this.buildFollowedUserRecord(targetUserId);
-        newRecord.followStatus = typeof followRtn.data === "string" ? followRtn.data : String(followRtn.data ?? "");
+        const followStatus = typeof followRtn.data === "string" ? followRtn.data : String(followRtn.data ?? "");
+        const followedAt = Date.now();
+        const minimal = this.buildMinimalFollowedUserRecord(targetUserId, followedAt, followStatus);
         const nextFollowedUsers = [
-          newRecord,
+          minimal,
           ...((latest.followedUsers || []) as FollowedUserRecord[])
         ];
-        const maxFollowedUsersLen = 200;
 
+        // 先立即回写最小记录，保证 Active Actions 及时刷新
         await patchActiveGrowthTask(latest.id, {
           progress: nextProgress,
           followedCount: (latest.followedCount || 0) + 1,
           todayActions: (latest.todayActions || 0) + 1,
-          followedUsers: nextFollowedUsers.slice(0, maxFollowedUsersLen),
+          followedUsers: nextFollowedUsers.slice(0, this.maxFollowedUsersLen),
           postQueueUserIds: queue.slice(0, maxQueueLen),
           postSeenUserIds: Array.from(seen).slice(0, maxSeenLen),
           estimatedDays: this.buildEstimatedDaysText(latest.total || 0, nextProgress)
         });
+
+        // 再异步补全用户信息，不阻塞 UI
+        void this.enrichFollowedUserRecordAsync(latest.id, targetUserId, followedAt, followStatus);
 
         tickSuccess++;
 
@@ -853,22 +1000,26 @@ class GrowthTaskRunner {
           }
 
           const nextProgress = (latest.progress || 0) + 1;
-          const newRecord = await this.buildFollowedUserRecord(targetUserId);
-          newRecord.followStatus = typeof followRtn.data === "string" ? followRtn.data : String(followRtn.data ?? "");
+          const followStatus = typeof followRtn.data === "string" ? followRtn.data : String(followRtn.data ?? "");
+          const followedAt = Date.now();
+          const minimal = this.buildMinimalFollowedUserRecord(targetUserId, followedAt, followStatus);
           const nextFollowedUsers = [
-            newRecord,
+            minimal,
             ...((latest.followedUsers || []) as FollowedUserRecord[])
           ];
-          const maxFollowedUsersLen = 200;
 
+          // 先立即回写最小记录，保证 Active Actions 及时刷新
           await patchActiveGrowthTask(latest.id, {
             progress: nextProgress,
             followedCount: (latest.followedCount || 0) + 1,
             todayActions: (latest.todayActions || 0) + 1,
-            followedUsers: nextFollowedUsers.slice(0, maxFollowedUsersLen),
+            followedUsers: nextFollowedUsers.slice(0, this.maxFollowedUsersLen),
             csvUsernames: usernames, // 回写剩余队列
             estimatedDays: this.buildEstimatedDaysText(latest.total || 0, nextProgress)
           });
+
+          // 再异步补全用户信息，不阻塞 UI
+          void this.enrichFollowedUserRecordAsync(latest.id, targetUserId, followedAt, followStatus);
           tickSuccess++;
 
           // 若本次成功后队列为空，则直接 stop，避免最后一次成功还等待。
