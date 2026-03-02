@@ -196,5 +196,608 @@
   },
   "tab_settings_preset_description_high": {
     "message": "Fast and aggressive, higher risk of being blocked."
+  },
+
+  "cmp_user_profile_safety_safe_pace": {
+    "message": "Ritmo sicuro"
+  },
+  "cmp_user_profile_safety_moderate": {
+    "message": "Moderato"
+  },
+  "cmp_user_profile_safety_approaching_limit": {
+    "message": "Vicino al limite"
+  },
+
+  "cmp_user_profile_membership_premium": {
+    "message": "Premium"
+  },
+  "cmp_user_profile_membership_free": {
+    "message": "Gratis"
+  },
+
+  "cmp_user_profile_plugin_login": {
+    "message": "Accedi"
+  },
+  "cmp_user_profile_plugin_logout": {
+    "message": "Esci"
+  },
+
+  "cmp_user_profile_stat_followers": {
+    "message": "Follower"
+  },
+  "cmp_user_profile_stat_following": {
+    "message": "Seguiti"
+  },
+
+  "cmp_user_profile_today_limit": {
+    "message": "Limite di oggi"
+  },
+  "cmp_user_profile_today_remaining_left": {
+    "message": "{count} rimanenti"
+  },
+
+  "cmp_user_profile_growth_7d_label": {
+    "message": "Ultimi 7 giorni"
+  },
+  "cmp_user_profile_growth_7d_tooltip": {
+    "message": "Conta solo la crescita ottenuta tramite questa estensione (la crescita prima dell'installazione non è inclusa)."
+  },
+  "cmp_user_profile_total_label": {
+    "message": "Totale"
+  },
+
+  "cmp_action_center_active_actions": {
+    "message": "Azioni attive ({count})"
+  },
+  "cmp_action_center_safety_settings": {
+    "message": "Impostazioni di sicurezza"
+  },
+  "cmp_action_center_new_action": {
+    "message": "Nuova azione"
+  },
+  "cmp_action_center_loading": {
+    "message": "Caricamento..."
+  },
+  "cmp_action_center_no_active_actions": {
+    "message": "Nessuna azione attiva"
+  },
+  "cmp_action_center_no_active_actions_desc": {
+    "message": "Crea la tua prima azione per iniziare"
+  },
+  "cmp_action_center_stopped_actions_last_30_days": {
+    "message": "Azioni interrotte (ultimi 30 giorni)"
+  },
+  "cmp_action_center_actions_count": {
+    "message": "{count} azioni"
+  },
+
+  "dlg_confirm_cancel_task_title": {
+    "message": "Annulla attività"
+  },
+  "dlg_confirm_cancel_task_message": {
+    "message": "Sei sicuro di voler annullare questa attività? Verrà spostata tra le azioni interrotte."
+  },
+  "dlg_confirm_confirm": {
+    "message": "Conferma"
+  },
+  "dlg_confirm_cancel": {
+    "message": "Annulla"
+  },
+  "dlg_confirm_proceed": {
+    "message": "Procedi"
+  },
+  "dlg_confirm_account_safety_notice_title": {
+    "message": "Avviso di sicurezza dell'account"
+  },
+  "dlg_confirm_account_safety_notice_message": {
+    "message": "Per la sicurezza dell'account, può essere eseguita una sola azione alla volta. Creando una nuova azione verranno interrotte automaticamente tutte le azioni correnti e spostate in Azioni interrotte. Vuoi procedere?"
+  },
+
+  "cmp_action_center_open_in_instagram": {
+    "message": "Apri in Instagram"
+  },
+  "cmp_action_center_status_paused": {
+    "message": "In pausa"
+  },
+  "cmp_action_center_status_in_progress": {
+    "message": "In corso"
+  },
+  "cmp_action_center_status_completed": {
+    "message": "Completato"
+  },
+
+  "cmp_action_center_stat_i_followed": {
+    "message": "Ho seguito"
+  },
+  "cmp_action_center_stat_followed": {
+    "message": "Seguiti"
+  },
+  "cmp_action_center_stat_follow_back": {
+    "message": "Follow back"
+  },
+  "cmp_action_center_stat_rate": {
+    "message": "Tasso"
+  },
+  "cmp_action_center_stat_cleaned": {
+    "message": "Puliti"
+  },
+
+  "cmp_action_center_progress": {
+    "message": "Avanzamento"
+  },
+  "cmp_action_center_today": {
+    "message": "Oggi"
+  },
+  "cmp_action_center_today_followed": {
+    "message": "{count} seguiti"
+  },
+  "cmp_action_center_est_completion": {
+    "message": "Completamento stimato"
+  },
+
+  "cmp_action_center_resume": {
+    "message": "Riprendi"
+  },
+  "cmp_action_center_pause": {
+    "message": "Pausa"
+  },
+  "cmp_action_center_hide": {
+    "message": "Nascondi"
+  },
+  "cmp_action_center_details": {
+    "message": "Dettagli"
+  },
+  "cmp_action_center_delete": {
+    "message": "Elimina"
+  },
+
+  "cmp_action_center_followed_users": {
+    "message": "Utenti seguiti ({count})"
+  },
+  "cmp_action_center_collapse": {
+    "message": "Comprimi"
+  },
+  "cmp_action_center_no_followed_users": {
+    "message": "Nessun utente seguito."
+  },
+  "cmp_action_center_user_followers": {
+    "message": "{count} follower"
+  },
+  "cmp_action_center_user_following": {
+    "message": "{count} seguiti"
+  },
+  "cmp_action_center_follow_status_following": {
+    "message": "Seguendo"
+  },
+  "cmp_action_center_follow_status_requested": {
+    "message": "Richiesto"
+  },
+  "cmp_action_center_clean_non_followers": {
+    "message": "Pulisci i non follower"
+  },
+
+  "cmp_create_task_goal_similar_title": {
+    "message": "Trova utenti simili a questo account"
+  },
+  "cmp_create_task_goal_similar_desc": {
+    "message": "Trova e segui utenti da competitor e account simili"
+  },
+  "cmp_create_task_goal_interested_title": {
+    "message": "Trova utenti ad alta intenzione da un post"
+  },
+  "cmp_create_task_goal_interested_desc": {
+    "message": "Trova e segui chi mette like/commenta su un Post/Reel"
+  },
+  "cmp_create_task_goal_batch_title": {
+    "message": "Segui utenti salvati"
+  },
+  "cmp_create_task_goal_batch_desc": {
+    "message": "Carica un file e segui in massa automaticamente"
+  },
+  "cmp_create_task_back_to_selection": {
+    "message": "Indietro"
+  },
+  "cmp_create_task_choose_strategy": {
+    "message": "Scegli la tua strategia di crescita"
+  },
+  "cmp_create_task_header_subtitle_selected": {
+    "message": "Configura i dettagli e avvia"
+  },
+  "cmp_create_task_header_subtitle_default": {
+    "message": "Seleziona un obiettivo per iniziare"
+  },
+  "cmp_create_task_csv_template_header": {
+    "message": "Nome utente Instagram"
+  },
+
+  "cmp_create_task_smart_filters_title": {
+    "message": "Filtri intelligenti"
+  },
+  "cmp_create_task_smart_filters_collapse": {
+    "message": "Clicca per comprimere"
+  },
+  "cmp_create_task_smart_filters_desc": {
+    "message": "Filtra account di bassa qualità per migliorare il follow-back"
+  },
+  "cmp_create_task_recommended": {
+    "message": "Consigliato"
+  },
+
+  "cmp_create_task_filter_exclude_low_quality_label": {
+    "message": "Evita account di bassa qualità"
+  },
+  "cmp_create_task_filter_exclude_low_quality_desc": {
+    "message": "Escludi account che potrebbero essere bot o di bassa qualità per aumentare il follow-back"
+  },
+  "cmp_create_task_filter_exclude_low_quality_hint": {
+    "message": "Escludi account registrati negli ultimi 30 giorni"
+  },
+
+  "cmp_create_task_filter_follow_ratio_title": {
+    "message": "Migliora il follow-back"
+  },
+  "cmp_create_task_filter_follow_ratio_desc": {
+    "message": "Gli account con più follower che seguiti hanno più probabilità di ricambiare"
+  },
+  "cmp_create_task_ratio_loose": {
+    "message": "Leggero"
+  },
+  "cmp_create_task_ratio_medium": {
+    "message": "Medio"
+  },
+  "cmp_create_task_ratio_recommended": {
+    "message": "Consigliato"
+  },
+  "cmp_create_task_ratio_strict": {
+    "message": "Rigido"
+  },
+  "cmp_create_task_ratio_hover": {
+    "message": "seguiti/follower > {ratio}"
+  },
+  "cmp_create_task_custom": {
+    "message": "Personalizzato"
+  },
+  "cmp_create_task_ratio_tip": {
+    "message": "Suggerimento: Rapporto Seguiti/Follower {ratio} (più alto = più rigido)"
+  },
+
+  "cmp_create_task_filter_active_users_title": {
+    "message": "Segui solo utenti attivi"
+  },
+  "cmp_create_task_filter_active_users_desc": {
+    "message": "Stima l'attività in base al numero di post"
+  },
+  "cmp_create_task_min_posts_any_hover": {
+    "message": "Nessun requisito di post"
+  },
+  "cmp_create_task_min_posts_active_hover": {
+    "message": "Utenti attivi: almeno 10 post"
+  },
+  "cmp_create_task_min_posts_established_hover": {
+    "message": "Account consolidati: almeno 50 post"
+  },
+  "cmp_create_task_min_posts_power_users_hover": {
+    "message": "Power user: almeno 200 post"
+  },
+  "cmp_create_task_advanced": {
+    "message": "Avanzate"
+  },
+  "cmp_create_task_minimum_posts": {
+    "message": "Post minimi:"
+  },
+  "cmp_create_task_input_number_placeholder": {
+    "message": "Inserisci un numero"
+  },
+  "cmp_create_task_press_enter_or_click_outside": {
+    "message": "Premi Invio o clicca fuori per chiudere"
+  },
+  "cmp_create_task_min_posts_tip": {
+    "message": "Suggerimento: Più post, più è probabile che l'account sia reale e attivo"
+  },
+
+  "cmp_create_task_not_recommended": {
+    "message": "Non consigliato"
+  },
+  "cmp_create_task_not_recommended_suffix": {
+    "message": "(Non consigliato)"
+  },
+  "cmp_create_task_filter_verified_label": {
+    "message": "Segui solo account verificati"
+  },
+  "cmp_create_task_filter_verified_desc": {
+    "message": "Ridurrà molto gli utenti disponibili ed è utile solo in rari casi"
+  },
+
+  "cmp_create_task_badge_exclude_low_quality": {
+    "message": "Bassa qualità filtrata"
+  },
+  "cmp_create_task_badge_exclude_low_quality_hover": {
+    "message": "Più utenti reali con maggiore probabilità di follow-back"
+  },
+  "cmp_create_task_badge_verified_only": {
+    "message": "Solo verificati"
+  },
+  "cmp_create_task_badge_verified_only_hover": {
+    "message": "Segui solo account con badge di verifica blu"
+  },
+  "cmp_create_task_badge_follow_ratio": {
+    "message": "Follow-back più alto"
+  },
+  "cmp_create_task_badge_follow_ratio_hover": {
+    "message": "Rapporto Seguiti/Follower ≥ {ratio}"
+  },
+  "cmp_create_task_badge_active_users": {
+    "message": "Utenti attivi"
+  },
+  "cmp_create_task_badge_active_users_hover": {
+    "message": "Almeno {count} post"
+  },
+
+  "cmp_create_task_daily_estimate": {
+    "message": "Stimati {count} follow/giorno · Livello di rischio: Basso"
+  },
+  "cmp_create_task_start_auto_follow": {
+    "message": "Avvia auto-follow"
+  },
+  "cmp_create_task_safety_enabled": {
+    "message": "Protezione di sicurezza attiva. Il sistema controllerà la frequenza per ridurre il rischio."
+  },
+
+  "cmp_create_task_competitor_username_label": {
+    "message": "Inserisci il nome utente Instagram del competitor"
+  },
+  "cmp_create_task_competitor_username_label_with_hint": {
+    "message": "Inserisci il nome utente Instagram del competitor"
+  },
+  "cmp_create_task_competitor_username_example_alt": {
+    "message": "Immagine di esempio"
+  },
+  "cmp_create_task_competitor_username_help": {
+    "message": "Suggerimento: usa il nome utente Instagram (senza @). Esempio: igmate_official"
+  },
+  "cmp_create_task_competitor_username_placeholder": {
+    "message": "es. @fashion_blogger"
+  },
+  "cmp_create_task_post_link_label": {
+    "message": "Link del Post/Reel"
+  },
+  "cmp_create_task_post_link_label_with_hint": {
+    "message": "Incolla un link di Post/Reel per trovare like/commenti"
+  },
+  "cmp_create_task_post_link_placeholder": {
+    "message": "https://www.instagram.com/p/..."
+  },
+  "cmp_create_task_post_link_example_alt": {
+    "message": "Esempio di link di un post Instagram"
+  },
+  "cmp_create_task_post_link_how_to_find": {
+    "message": "Apri il post su Instagram e copia il link dalla barra degli indirizzi."
+  },
+  "cmp_create_task_input_then_filters": {
+    "message": "Dopo l'inserimento puoi continuare a configurare i filtri"
+  },
+
+  "cmp_create_task_competitor_edge_followers_title": {
+    "message": "Segui i suoi follower"
+  },
+  "cmp_create_task_competitor_edge_followers_tooltip": {
+    "message": "È più probabile che diventino tuoi follower"
+  },
+  "cmp_create_task_competitor_edge_followers_desc": {
+    "message": "Target: follower di questo account"
+  },
+  "cmp_create_task_competitor_edge_following_title": {
+    "message": "Segui chi segue"
+  },
+  "cmp_create_task_competitor_edge_following_desc": {
+    "message": "Target: account che sta seguendo"
+  },
+
+  "cmp_create_task_min_posts_any": {
+    "message": "Qualsiasi"
+  },
+  "cmp_create_task_min_posts_active": {
+    "message": "Attivo"
+  },
+  "cmp_create_task_min_posts_established": {
+    "message": "Consolidato"
+  },
+  "cmp_create_task_min_posts_power_users": {
+    "message": "Power user"
+  },
+
+  "cmp_create_task_post_source_commenters_title": {
+    "message": "Commentatori"
+  },
+  "cmp_create_task_post_source_commenters_desc": {
+    "message": "Interazione più profonda, di solito follow-back più alto"
+  },
+  "cmp_create_task_post_source_likers_title": {
+    "message": "Chi mette like"
+  },
+  "cmp_create_task_post_source_likers_desc": {
+    "message": "Copertura più ampia e volume maggiore"
+  },
+
+  "cmp_create_task_batch_upload_drag_or_click": {
+    "message": "Trascina un file qui o clicca per caricare"
+  },
+  "cmp_create_task_batch_upload_supported_formats": {
+    "message": "Supporta Excel (.xlsx, .xls) e CSV"
+  },
+  "cmp_create_task_batch_upload_choose_file": {
+    "message": "Scegli file"
+  },
+  "cmp_create_task_batch_format_requirements": {
+    "message": "Requisiti formato file"
+  },
+  "cmp_create_task_batch_download_template": {
+    "message": "Scarica modello"
+  },
+  "cmp_create_task_batch_requirement_1": {
+    "message": "La prima colonna deve essere un nome utente Instagram (con o senza @) o un link al profilo"
+  },
+  "cmp_create_task_batch_requirement_2": {
+    "message": "Un nome utente per riga; l'estensione rimuove i duplicati automaticamente"
+  },
+  "cmp_create_task_batch_requirement_3": {
+    "message": "Consigliato: carica 200–500 nomi utente"
+  },
+  "cmp_create_task_batch_remove_file": {
+    "message": "Rimuovi file"
+  },
+  "cmp_create_task_batch_file_parsed": {
+    "message": "File analizzato"
+  },
+  "cmp_create_task_batch_parsing": {
+    "message": "Analisi file..."
+  },
+  "cmp_create_task_batch_total_users": {
+    "message": "Utenti totali"
+  },
+  "cmp_create_task_batch_user_count": {
+    "message": "{count} utenti"
+  },
+  "cmp_create_task_batch_uploaded_on": {
+    "message": "Caricato il {date}"
+  },
+  "cmp_create_task_batch_estimated_time": {
+    "message": "Tempo stimato"
+  },
+  "cmp_create_task_batch_estimated_time_fallback": {
+    "message": "0 secondi"
+  },
+
+  "tab_settings_random_range": {
+    "message": "Intervallo casuale"
+  },
+  "tab_settings_random_range_desc": {
+    "message": "Aggiunge un ritardo casuale extra di 0–N secondi a ogni richiesta per ridurre il rischio."
+  },
+
+  "dlg_membership_title": {
+    "message": "Esegui l'upgrade per sbloccare tutte le funzioni"
+  },
+  "dlg_membership_subtitle": {
+    "message": "Accelera la tua crescita su Instagram"
+  },
+
+  "dlg_membership_plan_monthly": {
+    "message": "Mensile"
+  },
+  "dlg_membership_plan_monthly_price": {
+    "message": "$9.99"
+  },
+  "dlg_membership_plan_monthly_period": {
+    "message": "/mese"
+  },
+
+  "dlg_membership_plan_quarterly": {
+    "message": "Trimestrale"
+  },
+  "dlg_membership_plan_quarterly_price": {
+    "message": "$24.99"
+  },
+  "dlg_membership_plan_quarterly_period": {
+    "message": "/trimestre"
+  },
+  "dlg_membership_plan_quarterly_savings": {
+    "message": "Risparmia $4.99"
+  },
+
+  "dlg_membership_plan_yearly": {
+    "message": "Annuale"
+  },
+  "dlg_membership_plan_yearly_price": {
+    "message": "$79.99"
+  },
+  "dlg_membership_plan_yearly_period": {
+    "message": "/anno"
+  },
+  "dlg_membership_plan_yearly_savings": {
+    "message": "Risparmia $39.99"
+  },
+
+  "dlg_membership_feature_core": {
+    "message": "Tutte le funzioni principali"
+  },
+  "dlg_membership_feature_daily_limit_140": {
+    "message": "Limite giornaliero di 140 follow"
+  },
+  "dlg_membership_feature_smart_unfollow": {
+    "message": "Unfollow intelligente"
+  },
+  "dlg_membership_feature_analytics": {
+    "message": "Analisi"
+  },
+  "dlg_membership_feature_email_support": {
+    "message": "Supporto email"
+  },
+  "dlg_membership_feature_priority_support": {
+    "message": "Supporto prioritario"
+  },
+  "dlg_membership_feature_advanced_filters": {
+    "message": "Filtri avanzati"
+  },
+  "dlg_membership_feature_dedicated_support": {
+    "message": "Supporto dedicato"
+  },
+  "dlg_membership_feature_api_access": {
+    "message": "Accesso API"
+  },
+
+  "dlg_membership_compare_title": {
+    "message": "Confronto funzionalità"
+  },
+  "dlg_membership_compare_item_bulk_follow_title": {
+    "message": "Bulk follow intelligente"
+  },
+  "dlg_membership_compare_item_bulk_follow_desc": {
+    "message": "Trova utenti target da più fonti con filtri"
+  },
+  "dlg_membership_compare_item_analytics_title": {
+    "message": "Analisi delle prestazioni"
+  },
+  "dlg_membership_compare_item_analytics_desc": {
+    "message": "Monitora il follow-back in tempo reale e ottimizza la strategia"
+  },
+  "dlg_membership_compare_item_unfollow_title": {
+    "message": "Gestione unfollow intelligente"
+  },
+  "dlg_membership_compare_item_unfollow_desc": {
+    "message": "Smetti di seguire chi non ricambia per mantenere l'account sano"
+  },
+  "dlg_membership_compare_item_safety_title": {
+    "message": "Controllo ritmo sicuro"
+  },
+  "dlg_membership_compare_item_safety_desc": {
+    "message": "Controlla la frequenza per ridurre il rischio dell'account"
+  },
+
+  "dlg_membership_trust_secure_payment": {
+    "message": "Pagamento sicuro"
+  },
+  "dlg_membership_trust_cancel_anytime": {
+    "message": "Annulla in qualsiasi momento"
+  },
+  "dlg_membership_trust_refund_7days": {
+    "message": "Garanzia di rimborso di 7 giorni"
+  },
+  "dlg_membership_terms_notice": {
+    "message": "Sottoscrivendo accetti Termini di servizio e Informativa sulla privacy"
+  },
+
+  "dlg_membership_most_popular": {
+    "message": "Più popolare"
+  },
+  "dlg_membership_choose_plan": {
+    "message": "Scegli {name}"
+  },
+
+  "dlg_common_a11y_dialog_title": {
+    "message": "Finestra di dialogo"
+  },
+  "dlg_follow_upgrade_desc": {
+    "message": "Passa a Premium per sbloccare più funzioni e limiti più alti."
   }
 }

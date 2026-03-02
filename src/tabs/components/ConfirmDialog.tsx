@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle, X, Shield } from 'lucide-react';
+import { t } from '~utils/commonFunction';
 
 interface ConfirmDialogProps {
   title: string;
@@ -15,8 +16,8 @@ interface ConfirmDialogProps {
 export default function ConfirmDialog({
   title,
   message,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText = t('dlg_confirm_confirm'),
+  cancelText = t('dlg_confirm_cancel'),
   confirmColor = 'red',
   iconType = 'warning',
   onConfirm,

@@ -23,6 +23,7 @@ import { TASK_TYPES } from "~utils/taskTypes";
 import { createGrowthTask, patchActiveGrowthTask, startGrowthTask } from "~utils/growthTaskCenter";
 import { buildBatchFollowEstimatedTimeText } from "~utils/estimateTimeUtils";
 import { loadNormalizedSafetySettings } from "~utils/safetySettingsUtils";
+import { t } from "~utils/commonFunction";
 
 interface CreateTaskProps {
   onClose: () => void;
@@ -54,30 +55,37 @@ export function CreateTask({
   const [uploadedFile, setUploadedFile] =
     useState<UploadedFile | null>(null);
   const [csvUsernames, setCsvUsernames] = useState<string[]>([]);
-  const [taskData, setTaskData] = useState({
-    input: "",
-    filters: {
-      requireVerified: false,
-      excludeNew30Days: true,
-      minFollowRatio: 1.0,
-      minPostCount: 10,
-    },
+  const [similarInput, setSimilarInput] = useState<string>("");
+  const [interestedInput, setInterestedInput] = useState<string>("");
+  const [batchInput, setBatchInput] = useState<string>("");
+  const [taskFilters, setTaskFilters] = useState({
+    requireVerified: false,
+    excludeNew30Days: true,
+    minFollowRatio: 1.0,
+    minPostCount: 10,
   });
+
+  const currentInput = (() => {
+    if (selectedGoal === "similar") return similarInput;
+    if (selectedGoal === "interested") return interestedInput;
+    if (selectedGoal === "batch") return batchInput;
+    return "";
+  })();
 
   const goalConfigs = {
     similar: {
       ...TASK_TYPES['competitor-follow'],
-      title: "吸引与该账号相似的潜在粉丝",
+      title: t("cmp_create_task_goal_similar_title"),
       gradient: "from-blue-500 to-blue-600",
     },
     interested: {
       ...TASK_TYPES['post-follow'],
-      title: "基于竞对内容，精准找到并关注高意向用户",
+      title: t("cmp_create_task_goal_interested_title"),
       gradient: "from-pink-500 to-pink-600",
     },
     batch: {
       ...TASK_TYPES['csv-follow'],
-      title: "Follow Saved Users",
+      title: t("cmp_create_task_goal_batch_title"),
       gradient: "from-emerald-500 to-emerald-600",
     },
   };
@@ -93,11 +101,16 @@ export function CreateTask({
 
       if (!type) return;
 
-      const sourceInput = selectedGoal === "batch" ? (uploadedFile?.name || "") : taskData.input;
+      const sourceInput = (() => {
+        if (selectedGoal === "batch") return uploadedFile?.name || "";
+        if (selectedGoal === "similar") return similarInput;
+        if (selectedGoal === "interested") return interestedInput;
+        return "";
+      })();
       const task = await createGrowthTask({
         type,
         sourceInput,
-        filters: taskData.filters
+        filters: taskFilters
       });
 
 	  if (type === "competitor-follow") {
@@ -109,7 +122,7 @@ export function CreateTask({
 	  if (type === "post-follow") {
 		  await patchActiveGrowthTask(task.id, {
 			  postSourceMode,
-			  postUrl: taskData.input
+			  postUrl: interestedInput
 		  });
 	  }
 
@@ -135,8 +148,9 @@ export function CreateTask({
 
   const handleDownloadTemplate = () => {
     // 创建CSV模板内容
+    const header = t("cmp_create_task_csv_template_header");
     const csvContent =
-      "Instagram Username\n@example_user1\nexample_user2\n@fashion_blogger\ntravel_influencer";
+      `${header}\n@example_user1\nexample_user2\n@fashion_blogger\ntravel_influencer`;
     const blob = new Blob([csvContent], {
       type: "text/csv;charset=utf-8;",
     });
@@ -169,7 +183,7 @@ export function CreateTask({
           userCount: usernames.length,
           uploadDate: new Date(),
         });
-        setTaskData({ ...taskData, input: file.name });
+        setBatchInput(file.name);
 
         const safety = await loadNormalizedSafetySettings();
         const text = buildBatchFollowEstimatedTimeText({
@@ -190,7 +204,7 @@ export function CreateTask({
   const handleRemoveFile = () => {
     setUploadedFile(null);
     setCsvUsernames([]);
-    setTaskData({ ...taskData, input: "" });
+    setBatchInput("");
   };
 
   return (
@@ -215,7 +229,7 @@ export function CreateTask({
               <button
                 onClick={() => setSelectedGoal(null)}
                 className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors flex-shrink-0"
-                title="返回重选"
+                title={t("cmp_create_task_back_to_selection")}
               >
                 <span className="text-xl">←</span>
               </button>
@@ -232,12 +246,12 @@ export function CreateTask({
               <h2 className="text-2xl">
                 {selectedGoal
                   ? goalConfigs[selectedGoal].title
-                  : "选择你的增长策略"}
+                  : t("cmp_create_task_choose_strategy")}
               </h2>
               <p className="text-sm text-white/80">
                 {selectedGoal
-                  ? "Auto-follow users you’ve already collected"
-                  : "选择一个目标开始吸粉"}
+                  ? t("cmp_create_task_header_subtitle_selected")
+                  : t("cmp_create_task_header_subtitle_default")}
               </p>
             </div>
           </div>
@@ -259,8 +273,8 @@ export function CreateTask({
                   return (
                     <GoalCard
                       icon={<CompetitorIcon className="w-8 h-8" />}
-                      title="吸引与该账号相似的潜在粉丝"
-                      description="从竞争对手或同行中吸粉"
+                      title={t("cmp_create_task_goal_similar_title")}
+                      description={t("cmp_create_task_goal_similar_desc")}
                       gradient="from-blue-500 to-blue-600"
                       bgColor={TASK_TYPES['competitor-follow'].bgColor}
                       iconColor={TASK_TYPES['competitor-follow'].iconColor}
@@ -274,8 +288,8 @@ export function CreateTask({
                   return (
                     <GoalCard
                       icon={<PostIcon className="w-8 h-8" />}
-                      title="基于竞对内容，精准找到并关注高意向用户"
-                      description="从某条 Post / Reel 中吸粉"
+                      title={t("cmp_create_task_goal_interested_title")}
+                      description={t("cmp_create_task_goal_interested_desc")}
                       gradient="from-pink-500 to-pink-600"
                       bgColor={TASK_TYPES['post-follow'].bgColor}
                       iconColor={TASK_TYPES['post-follow'].iconColor}
@@ -289,8 +303,8 @@ export function CreateTask({
                   return (
                     <GoalCard
                       icon={<CsvIcon className="w-8 h-8" />}
-                      title="Follow Saved Users"
-                      description="上传 Excel，一键自动关注"
+                      title={t("cmp_create_task_goal_batch_title")}
+                      description={t("cmp_create_task_goal_batch_desc")}
                       gradient="from-emerald-500 to-emerald-600"
                       bgColor={TASK_TYPES['csv-follow'].bgColor}
                       iconColor={TASK_TYPES['csv-follow'].iconColor}
@@ -311,10 +325,12 @@ export function CreateTask({
                 <div className="space-y-6">
                   <InputSection
                     goal={selectedGoal}
-                    value={taskData.input}
-                    onChange={(value) =>
-                      setTaskData({ ...taskData, input: value })
-                    }
+                    value={currentInput}
+                    onChange={(value) => {
+                      if (selectedGoal === "similar") setSimilarInput(value);
+                      if (selectedGoal === "interested") setInterestedInput(value);
+                      if (selectedGoal === "batch") setBatchInput(value);
+                    }}
                     isParsing={isParsing}
                     batchEstimatedTimeText={batchEstimatedTimeText}
                     competitorEdge={competitorEdge}
@@ -331,17 +347,17 @@ export function CreateTask({
                   <motion.div
                     animate={{
                       opacity:
-                        taskData.input.trim().length > 0 ||
+                        currentInput.trim().length > 0 ||
                         selectedGoal === "batch"
                           ? 1
                           : 0.4,
                       pointerEvents:
-                        taskData.input.trim().length > 0 ||
+                        currentInput.trim().length > 0 ||
                         selectedGoal === "batch"
                           ? "auto"
                           : "none",
                       scale:
-                        taskData.input.trim().length > 0 ||
+                        currentInput.trim().length > 0 ||
                         selectedGoal === "batch"
                           ? 1
                           : 0.98,
@@ -354,7 +370,7 @@ export function CreateTask({
                         setShowAdvanced(!showAdvanced)
                       }
                       disabled={
-                        (taskData.input.trim().length === 0 &&
+                        (currentInput.trim().length === 0 &&
                         selectedGoal !== "batch") ||
                         (selectedGoal === "batch" && !uploadedFile)
                       }
@@ -364,12 +380,12 @@ export function CreateTask({
                         <Settings className="w-5 h-5 text-gray-600" />
                         <div className="text-left">
                           <div className="text-sm">
-                            🎯 智能筛选
+                            {t("cmp_create_task_smart_filters_title")}
                           </div>
                           <div className="text-xs text-gray-500">
                             {showAdvanced
-                              ? "点击收起"
-                              : "已帮你过滤低质量账号，提高关注成功率"}
+                              ? t("cmp_create_task_smart_filters_collapse")
+                              : t("cmp_create_task_smart_filters_desc")}
                           </div>
                         </div>
                       </div>
@@ -405,7 +421,7 @@ export function CreateTask({
                               <div className="absolute top-3 right-3">
                                 <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-600 text-white text-xs rounded-full shadow-sm">
                                   <Sparkles className="w-3 h-3" />
-                                  推荐
+                                  {t("cmp_create_task_recommended")}
                                 </span>
                               </div>
 
@@ -416,24 +432,19 @@ export function CreateTask({
 
                                 <div className="flex-1 pt-1">
                                   <FilterToggle
-                                    label="避免低质量账号"
-                                    description="排除可能是僵尸号、机器人的账号，更容易回关"
+                                    label={t("cmp_create_task_filter_exclude_low_quality_label")}
+                                    description={t("cmp_create_task_filter_exclude_low_quality_desc")}
                                     checked={
-                                      taskData.filters
-                                        .excludeNew30Days
+                                      taskFilters.excludeNew30Days
                                     }
                                     onChange={(checked) =>
-                                      setTaskData({
-                                        ...taskData,
-                                        filters: {
-                                          ...taskData.filters,
-                                          excludeNew30Days:
-                                            checked,
-                                        },
+                                      setTaskFilters({
+                                        ...taskFilters,
+                                        excludeNew30Days: checked,
                                       })
                                     }
                                     showHint
-                                    hintText="排除注册30天以内的账号"
+                                    hintText={t("cmp_create_task_filter_exclude_low_quality_hint")}
                                   />
                                 </div>
                               </div>
@@ -453,10 +464,10 @@ export function CreateTask({
 
                                 <div className="flex-1 pt-1">
                                   <h3 className="text-base mb-1 flex items-center gap-2">
-                                    筛选更容易回关的账号
+                                    {t("cmp_create_task_filter_follow_ratio_title")}
                                   </h3>
                                   <p className="text-xs text-gray-600">
-                                    粉丝数远大于关注数的账号，回关率更高
+                                    {t("cmp_create_task_filter_follow_ratio_desc")}
                                   </p>
                                 </div>
                               </div>
@@ -464,78 +475,66 @@ export function CreateTask({
                               {!showCustomRatio ? (
                                 <div className="grid grid-cols-5 gap-2">
                                   <RatioButton
-                                    label="宽松"
+                                    label={t("cmp_create_task_ratio_loose")}
                                     value={0.1}
                                     currentValue={
-                                      taskData.filters
+                                      taskFilters
                                         .minFollowRatio
                                     }
-                                    hoverText="following人数/followers人数>0.1"
+                                    hoverText={t("cmp_create_task_ratio_hover", { ratio: 0.1 })}
                                     onClick={() => {
-                                      setTaskData({
-                                        ...taskData,
-                                        filters: {
-                                          ...taskData.filters,
-                                          minFollowRatio: 0.1,
-                                        },
+                                      setTaskFilters({
+                                        ...taskFilters,
+                                        minFollowRatio: 0.1,
                                       });
                                       setIsCustomValue(false);
                                     }}
                                   />
                                   <RatioButton
-                                    label="适中"
+                                    label={t("cmp_create_task_ratio_medium")}
                                     value={0.5}
                                     currentValue={
-                                      taskData.filters
+                                      taskFilters
                                         .minFollowRatio
                                     }
-                                    hoverText="following人数/followers人数>0.5"
+                                    hoverText={t("cmp_create_task_ratio_hover", { ratio: 0.5 })}
                                     onClick={() => {
-                                      setTaskData({
-                                        ...taskData,
-                                        filters: {
-                                          ...taskData.filters,
-                                          minFollowRatio: 0.5,
-                                        },
+                                      setTaskFilters({
+                                        ...taskFilters,
+                                        minFollowRatio: 0.5,
                                       });
                                       setIsCustomValue(false);
                                     }}
                                   />
                                   <RatioButton
-                                    label="推荐 ⭐"
+                                    label={t("cmp_create_task_ratio_recommended")}
                                     value={1.0}
                                     currentValue={
-                                      taskData.filters
+                                      taskFilters
                                         .minFollowRatio
                                     }
-                                    hoverText="following人数/followers人数>1"
+                                    hoverText={t("cmp_create_task_ratio_hover", { ratio: 1 })}
                                     isRecommended
                                     onClick={() => {
-                                      setTaskData({
-                                        ...taskData,
-                                        filters: {
-                                          ...taskData.filters,
-                                          minFollowRatio: 1.0,
-                                        },
+                                      setTaskFilters({
+                                        ...taskFilters,
+                                        minFollowRatio: 1.0,
                                       });
                                       setIsCustomValue(false);
                                     }}
                                   />
                                   <RatioButton
-                                    label="严格"
+                                    label={t("cmp_create_task_ratio_strict")}
                                     value={3.0}
                                     currentValue={
-                                      taskData.filters
+                                      taskFilters
                                         .minFollowRatio
                                     }
-                                    hoverText="following人数/followers人数>3"
+                                    hoverText={t("cmp_create_task_ratio_hover", { ratio: 3 })}
                                     onClick={() => {
-                                      setTaskData({
-                                        ...taskData,
-                                        filters: {
-                                          ...taskData.filters,
-                                          minFollowRatio: 3.0,
-                                        },
+                                      setTaskFilters({
+                                        ...taskFilters,
+                                        minFollowRatio: 3.0,
                                       });
                                       setIsCustomValue(false);
                                     }}
@@ -547,7 +546,7 @@ export function CreateTask({
                                       }
                                       className="px-3 py-2.5 bg-gradient-to-br from-gray-800 to-gray-900 text-white shadow-md rounded-lg text-xs transition-all"
                                     >
-                                      {taskData.filters.minFollowRatio.toFixed(
+                                      {taskFilters.minFollowRatio.toFixed(
                                         1,
                                       )}
                                     </button>
@@ -559,7 +558,7 @@ export function CreateTask({
                                       className="px-3 py-2.5 bg-white border border-gray-300 hover:border-purple-400 rounded-lg text-xs text-gray-700 transition-all flex items-center justify-center gap-1"
                                     >
                                       <Settings className="w-3 h-3" />
-                                      自定义
+                                      {t("cmp_create_task_custom")}
                                     </button>
                                   )}
                                 </div>
@@ -572,7 +571,7 @@ export function CreateTask({
                                 >
                                   <div className="mb-3">
                                     <div className="text-center text-lg text-purple-600 mb-1">
-                                      {taskData.filters.minFollowRatio.toFixed(
+                                      {taskFilters.minFollowRatio.toFixed(
                                         1,
                                       )}
                                     </div>
@@ -583,19 +582,16 @@ export function CreateTask({
                                     max="3"
                                     step="0.1"
                                     value={
-                                      taskData.filters
+                                      taskFilters
                                         .minFollowRatio
                                     }
                                     onChange={(e) => {
-                                      setTaskData({
-                                        ...taskData,
-                                        filters: {
-                                          ...taskData.filters,
-                                          minFollowRatio:
-                                            parseFloat(
-                                              e.target.value,
-                                            ),
-                                        },
+                                      setTaskFilters({
+                                        ...taskFilters,
+                                        minFollowRatio:
+                                          parseFloat(
+                                            e.target.value,
+                                          ),
                                       });
                                       setIsCustomValue(true);
                                     }}
@@ -607,7 +603,7 @@ export function CreateTask({
                                     }
                                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                                     style={{
-                                      background: `linear-gradient(to right, #9333ea 0%, #9333ea ${(taskData.filters.minFollowRatio / 3) * 100}%, #e5e7eb ${(taskData.filters.minFollowRatio / 3) * 100}%, #e5e7eb 100%)`,
+                                      background: `linear-gradient(to right, #9333ea 0%, #9333ea ${(taskFilters.minFollowRatio / 3) * 100}%, #e5e7eb ${(taskFilters.minFollowRatio / 3) * 100}%, #e5e7eb 100%)`,
                                     }}
                                   />
                                   <div className="flex justify-between text-xs text-gray-400 mt-2">
@@ -618,11 +614,9 @@ export function CreateTask({
                               )}
 
                               <p className="text-xs text-gray-500 mt-3 bg-white/80 px-3 py-2 rounded-lg backdrop-blur-sm">
-                                💡 Following/Follower 比例{" "}
-                                {taskData.filters.minFollowRatio.toFixed(
-                                  1,
-                                )}
-                                （比例越高筛选越严格）
+                                {t("cmp_create_task_ratio_tip", {
+                                  ratio: taskFilters.minFollowRatio.toFixed(1)
+                                })}
                               </p>
                             </motion.div>
 
@@ -640,10 +634,10 @@ export function CreateTask({
 
                                 <div className="flex-1 pt-1">
                                   <h3 className="text-base mb-1">
-                                    只关注真实活跃用户
+                                    {t("cmp_create_task_filter_active_users_title")}
                                   </h3>
                                   <p className="text-xs text-gray-600">
-                                    根据发帖数量判断账号活跃度
+                                    {t("cmp_create_task_filter_active_users_desc")}
                                   </p>
                                 </div>
                               </div>
@@ -651,75 +645,63 @@ export function CreateTask({
                               {!showCustomPosts ? (
                                 <div className="grid grid-cols-5 gap-2">
                                   <RatioButton
-                                    label="Any"
+                                    label={t("cmp_create_task_min_posts_any")}
                                     value={0}
                                     currentValue={
-                                      taskData.filters
+                                      taskFilters
                                         .minPostCount
                                     }
-                                    hoverText="无发帖数量要求"
+                                    hoverText={t("cmp_create_task_min_posts_any_hover")}
                                     onClick={() => {
-                                      setTaskData({
-                                        ...taskData,
-                                        filters: {
-                                          ...taskData.filters,
-                                          minPostCount: 0,
-                                        },
+                                      setTaskFilters({
+                                        ...taskFilters,
+                                        minPostCount: 0,
                                       });
                                     }}
                                   />
                                   <RatioButton
-                                    label="Active"
+                                    label={t("cmp_create_task_min_posts_active")}
                                     value={10}
                                     currentValue={
-                                      taskData.filters
+                                      taskFilters
                                         .minPostCount
                                     }
-                                    hoverText="活跃用户：至少10个帖子"
+                                    hoverText={t("cmp_create_task_min_posts_active_hover")}
                                     isRecommended
                                     onClick={() => {
-                                      setTaskData({
-                                        ...taskData,
-                                        filters: {
-                                          ...taskData.filters,
-                                          minPostCount: 10,
-                                        },
+                                      setTaskFilters({
+                                        ...taskFilters,
+                                        minPostCount: 10,
                                       });
                                     }}
                                   />
                                   <RatioButton
-                                    label="Established"
+                                    label={t("cmp_create_task_min_posts_established")}
                                     value={50}
                                     currentValue={
-                                      taskData.filters
+                                      taskFilters
                                         .minPostCount
                                     }
-                                    hoverText="成熟账号：至少50个帖子"
+                                    hoverText={t("cmp_create_task_min_posts_established_hover")}
                                     onClick={() => {
-                                      setTaskData({
-                                        ...taskData,
-                                        filters: {
-                                          ...taskData.filters,
-                                          minPostCount: 50,
-                                        },
+                                      setTaskFilters({
+                                        ...taskFilters,
+                                        minPostCount: 50,
                                       });
                                     }}
                                   />
                                   <RatioButton
-                                    label="Power users"
+                                    label={t("cmp_create_task_min_posts_power_users")}
                                     value={200}
                                     currentValue={
-                                      taskData.filters
+                                      taskFilters
                                         .minPostCount
                                     }
-                                    hoverText="超级用户：至少200个帖子"
+                                    hoverText={t("cmp_create_task_min_posts_power_users_hover")}
                                     onClick={() => {
-                                      setTaskData({
-                                        ...taskData,
-                                        filters: {
-                                          ...taskData.filters,
-                                          minPostCount: 200,
-                                        },
+                                      setTaskFilters({
+                                        ...taskFilters,
+                                        minPostCount: 200,
                                       });
                                     }}
                                   />
@@ -729,7 +711,7 @@ export function CreateTask({
                                     }
                                     className="px-3 py-2.5 bg-white border border-gray-300 hover:border-blue-400 rounded-lg text-xs text-gray-700 transition-all flex items-center justify-center gap-1"
                                   >
-                                    Advanced
+                                    {t("cmp_create_task_advanced")}
                                     <ChevronDown className="w-3 h-3" />
                                   </button>
                                 </div>
@@ -741,25 +723,22 @@ export function CreateTask({
                                   }
                                 >
                                   <label className="block text-sm text-gray-700 mb-2">
-                                    Minimum posts:
+                                    {t("cmp_create_task_minimum_posts")}
                                   </label>
                                   <input
                                     type="number"
                                     min="0"
                                     value={
-                                      taskData.filters
+                                      taskFilters
                                         .minPostCount
                                     }
                                     onChange={(e) => {
-                                      setTaskData({
-                                        ...taskData,
-                                        filters: {
-                                          ...taskData.filters,
-                                          minPostCount:
-                                            parseInt(
-                                              e.target.value,
-                                            ) || 0,
-                                        },
+                                      setTaskFilters({
+                                        ...taskFilters,
+                                        minPostCount:
+                                          parseInt(
+                                            e.target.value,
+                                          ) || 0,
                                       });
                                     }}
                                     onBlur={() =>
@@ -767,17 +746,16 @@ export function CreateTask({
                                     }
                                     autoFocus
                                     className="w-full px-4 py-3 border-2 border-blue-400 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all bg-white shadow-sm"
-                                    placeholder="输入数字"
+                                    placeholder={t("cmp_create_task_input_number_placeholder")}
                                   />
                                   <p className="text-xs text-gray-500 mt-2">
-                                    按 Enter 或点击外部关闭
+                                    {t("cmp_create_task_press_enter_or_click_outside")}
                                   </p>
                                 </div>
                               )}
 
                               <p className="text-xs text-gray-500 mt-3 bg-white/80 px-3 py-2 rounded-lg backdrop-blur-sm">
-                                💡
-                                发帖数越多，账号越可能是真人且活跃
+                                {t("cmp_create_task_min_posts_tip")}
                               </p>
                             </motion.div>
 
@@ -791,7 +769,7 @@ export function CreateTask({
                               <div className="absolute top-3 right-3">
                                 <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-yellow-600 text-white text-xs rounded-full shadow-sm">
                                   <AlertTriangle className="w-3 h-3" />
-                                  不推荐
+                                  {t("cmp_create_task_not_recommended")}
                                 </span>
                               </div>
 
@@ -802,20 +780,17 @@ export function CreateTask({
 
                                 <div className="flex-1 pt-1">
                                   <FilterToggle
-                                    label="仅关注已证账号（蓝V）"
-                                    description="会大幅减少可关注用户数量，极少数场景才需要"
+                                    label={t("cmp_create_task_filter_verified_label")}
+                                    description={t("cmp_create_task_filter_verified_desc")}
                                     checked={
-                                      taskData.filters
+                                      taskFilters
                                         .requireVerified
                                     }
                                     onChange={(checked) =>
-                                      setTaskData({
-                                        ...taskData,
-                                        filters: {
-                                          ...taskData.filters,
-                                          requireVerified:
-                                            checked,
-                                        },
+                                      setTaskFilters({
+                                        ...taskFilters,
+                                        requireVerified:
+                                          checked,
                                       })
                                     }
                                   />
@@ -831,26 +806,30 @@ export function CreateTask({
                     {!showAdvanced && (
                       <div className="px-6 pb-4">
                         <div className="flex flex-wrap gap-2">
-                          {taskData.filters
+                          {taskFilters
                             .excludeNew30Days && (
                             <DefaultBadge
-                              text="避免低质量账号"
-                              hoverText="更容易回关的真实用户"
+                              text={t("cmp_create_task_badge_exclude_low_quality")}
+                              hoverText={t("cmp_create_task_badge_exclude_low_quality_hover")}
                             />
                           )}
-                          {taskData.filters.requireVerified && (
+                          {taskFilters.requireVerified && (
                             <DefaultBadge
-                              text="仅高质量用户"
-                              hoverText="只关注有蓝色认证标识的账号"
+                              text={t("cmp_create_task_badge_verified_only")}
+                              hoverText={t("cmp_create_task_badge_verified_only_hover")}
                             />
                           )}
                           <DefaultBadge
-                            text="更容易回关"
-                            hoverText={`Following/Follower 比例 ≥ ${taskData.filters.minFollowRatio.toFixed(1)}`}
+                            text={t("cmp_create_task_badge_follow_ratio")}
+                            hoverText={t("cmp_create_task_badge_follow_ratio_hover", {
+                              ratio: taskFilters.minFollowRatio.toFixed(1)
+                            })}
                           />
                           <DefaultBadge
-                            text="真实活跃用户"
-                            hoverText={`至少发布过 ${taskData.filters.minPostCount} 个帖子`}
+                            text={t("cmp_create_task_badge_active_users")}
+                            hoverText={t("cmp_create_task_badge_active_users_hover", {
+                              count: taskFilters.minPostCount
+                            })}
                           />
                         </div>
                       </div>
@@ -860,12 +839,12 @@ export function CreateTask({
                   <motion.div
                     animate={{
                       opacity:
-                        taskData.input.trim().length > 0 ||
+                        currentInput.trim().length > 0 ||
                         uploadedFile
                           ? 1
                           : 0.4,
                       scale:
-                        taskData.input.trim().length > 0 ||
+                        currentInput.trim().length > 0 ||
                         uploadedFile
                           ? 1
                           : 0.98,
@@ -874,7 +853,7 @@ export function CreateTask({
                     className="space-y-6"
                   >
                     <p className="text-center text-xs text-gray-500">
-                      预计每天关注 140 人 · 风险等级：低 🟢
+                      {t("cmp_create_task_daily_estimate", { count: process.env.PLASMO_PUBLIC_FREE_USER_DAILY_LIMIT })}
                     </p>
 
                     {/* Start Button */}
@@ -885,19 +864,18 @@ export function CreateTask({
                       disabled={
                         selectedGoal === "batch"
                           ? !uploadedFile
-                          : taskData.input.trim().length === 0
+                          : currentInput.trim().length === 0
                       }
                       className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
                       <span className="text-lg">
-                        开始自动关注
+                        {t("cmp_create_task_start_auto_follow")}
                       </span>
                     </motion.button>
 
                     <p className="text-center text-xs text-gray-500">
-                      🛡️ 已启用账号安全保护
-                      系统会自动控制频率，避免触发风控
+                      {t("cmp_create_task_safety_enabled")}
                     </p>
                   </motion.div>
                 </div>
@@ -1023,8 +1001,8 @@ function InputSection({
                 className="transition-all"
               >
                 {hasInput
-                  ? "输入竞争对手的 Instagram 用户名"
-                  : "👇 输入竞争对手的 Instagram 用户名"}
+                  ? t("cmp_create_task_competitor_username_label")
+                  : t("cmp_create_task_competitor_username_label_with_hint")}
               </motion.span>
               <div className="relative inline-block group/username-hint">
                 <Info
@@ -1036,13 +1014,8 @@ function InputSection({
                 />
                 <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-64 p-3 bg-white border-2 border-purple-200 rounded-xl shadow-xl opacity-0 invisible group-hover/username-hint:opacity-100 group-hover/username-hint:visible transition-all pointer-events-none z-[9999]">
                   <div className="absolute right-full top-1/2 -translate-y-1/2 -mr-1 border-8 border-transparent border-r-purple-200"></div>
-                  <img
-                    src="https://via.placeholder.com/240x180/9333ea/ffffff?text=Instagram+Username+Example"
-                    alt="示例图片"
-                    className="w-full h-auto rounded-lg mb-2"
-                  />
                   <p className="text-xs text-gray-700">
-                    在这里输入你想分析的竞争对手用户名
+                    {t("cmp_create_task_competitor_username_help")}
                   </p>
                 </div>
               </div>
@@ -1050,7 +1023,7 @@ function InputSection({
 
             <motion.input
               type="text"
-              placeholder="例如: @fashion_blogger"
+              placeholder={t("cmp_create_task_competitor_username_placeholder")}
               value={value}
               onChange={(e) => onChange(e.target.value)}
               animate={{
@@ -1085,7 +1058,7 @@ function InputSection({
                   }}
                   className="w-1.5 h-1.5 bg-purple-600 rounded-full"
                 />
-                <span>输入后可继续设置筛选条件</span>
+                <span>{t("cmp_create_task_input_then_filters")}</span>
               </motion.div>
             )}
           </div>
@@ -1113,17 +1086,17 @@ function InputSection({
               />
               <div className="flex-1">
                 <div className="text-sm flex items-center gap-1.5">
-                  吸引 TA 的粉丝(Followers)
+                  {t("cmp_create_task_competitor_edge_followers_title")}
                   <div className="relative inline-block">
                     <Info className="w-3.5 h-3.5 text-purple-500" />
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-40 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover/followers:opacity-100 group-hover/followers:visible transition-all pointer-events-none z-10">
-                      他们更容易成为你的粉丝
+                      {t("cmp_create_task_competitor_edge_followers_tooltip")}
                       <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
                     </div>
                   </div>
                 </div>
                 <div className="text-xs text-gray-600">
-                  关注 TA 的粉丝
+                  {t("cmp_create_task_competitor_edge_followers_desc")}
                 </div>
               </div>
             </label>
@@ -1138,10 +1111,10 @@ function InputSection({
               />
               <div>
                 <div className="text-sm">
-                  吸引TA的关注对象(Following)
+                  {t("cmp_create_task_competitor_edge_following_title")}
                 </div>
                 <div className="text-xs text-gray-600">
-                  TA 关注的人
+                  {t("cmp_create_task_competitor_edge_following_desc")}
                 </div>
               </div>
             </label>
@@ -1184,8 +1157,8 @@ function InputSection({
                 className="transition-all"
               >
                 {hasInput
-                  ? "粘贴 Instagram 帖子 / Reel 链接"
-                  : "👇 粘贴 Instagram 帖子 / Reel 链接"}
+                  ? t("cmp_create_task_post_link_label")
+                  : t("cmp_create_task_post_link_label_with_hint")}
               </motion.span>
               <div className="relative inline-block group/post-hint">
                 <Info
@@ -1195,13 +1168,8 @@ function InputSection({
                 />
                 <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-64 p-3 bg-white border-2 border-pink-200 rounded-xl shadow-xl opacity-0 invisible group-hover/post-hint:opacity-100 group-hover/post-hint:visible transition-all pointer-events-none z-[9999]">
                   <div className="absolute right-full top-1/2 -translate-y-1/2 -mr-1 border-8 border-transparent border-r-pink-200"></div>
-                  <img
-                    src="https://via.placeholder.com/240x180/ec4899/ffffff?text=Instagram+Post+Link+Example"
-                    alt="示例图片"
-                    className="w-full h-auto rounded-lg mb-2"
-                  />
                   <p className="text-xs text-gray-700">
-                    如何找到Post或者reels的链接
+                    {t("cmp_create_task_post_link_how_to_find")}
                   </p>
                 </div>
               </div>
@@ -1209,7 +1177,7 @@ function InputSection({
 
             <motion.input
               type="text"
-              placeholder="例如: https://instagram.com/p/xxx"
+              placeholder={t("cmp_create_task_post_link_placeholder")}
               value={value}
               onChange={(e) => onChange(e.target.value)}
               animate={{
@@ -1244,7 +1212,7 @@ function InputSection({
                   }}
                   className="w-1.5 h-1.5 bg-pink-600 rounded-full"
                 />
-                <span>输入后可继续设置筛选条件</span>
+                <span>{t("cmp_create_task_input_then_filters")}</span>
               </motion.div>
             )}
           </div>
@@ -1271,9 +1239,9 @@ function InputSection({
                 className="w-5 h-5 text-pink-600"
               />
               <div className="flex-1">
-                <div className="text-sm">评论者</div>
+                <div className="text-sm">{t("cmp_create_task_post_source_commenters_title")}</div>
                 <div className="text-xs text-gray-600">
-                  更高互动深度，通常回关率更高
+                  {t("cmp_create_task_post_source_commenters_desc")}
                 </div>
               </div>
             </label>
@@ -1287,9 +1255,9 @@ function InputSection({
                 className="w-5 h-5 text-pink-600"
               />
               <div className="flex-1">
-                <div className="text-sm">点赞者</div>
+                <div className="text-sm">{t("cmp_create_task_post_source_likers_title")}</div>
                 <div className="text-xs text-gray-600">
-                  覆盖更广，数量更大
+                  {t("cmp_create_task_post_source_likers_desc")}
                 </div>
               </div>
             </label>
@@ -1316,33 +1284,33 @@ function InputSection({
                 <Upload className="w-6 h-6 text-white" />
               </div>
               <p className="text-sm text-gray-700 mb-1">
-                拖拽文件到这里，或点击上传
+                {t("cmp_create_task_batch_upload_drag_or_click")}
               </p>
               <p className="text-xs text-gray-500 mb-3">
-                支持 Excel (.xlsx, .xls) 和 CSV 格式
+                {t("cmp_create_task_batch_upload_supported_formats")}
               </p>
               <div className="inline-block px-5 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm rounded-lg hover:from-orange-600 hover:to-orange-700 transition-colors shadow-md mb-4">
-                选择文件
+                {t("cmp_create_task_batch_upload_choose_file")}
               </div>
               
               {/* Integrated Format Requirements */}
               <div className="mt-4 pt-4 border-t border-gray-200 text-left">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs text-gray-600">
-                    📋 文件格式要求
+                    {t("cmp_create_task_batch_format_requirements")}
                   </p>
                   <button
                     onClick={onDownloadTemplate}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    下载模板
+                    {t("cmp_create_task_batch_download_template")}
                   </button>
                 </div>
                 <ul className="text-xs text-gray-500 space-y-0.5">
-                  <li>• 第一列必须是 Instagram 用户名（带或不带 @ 都可以）或者profile link</li>
-                  <li>• 每行一个用户名，插件会自动去重</li>
-                  <li>• 建议上传 200-500 个用户名</li>
+                  <li>{t("cmp_create_task_batch_requirement_1")}</li>
+                  <li>{t("cmp_create_task_batch_requirement_2")}</li>
+                  <li>{t("cmp_create_task_batch_requirement_3")}</li>
                 </ul>
               </div>
             </label>
@@ -1371,16 +1339,15 @@ function InputSection({
                     <div className="flex items-center gap-1.5">
                       <Users className="w-3.5 h-3.5" />
                       <span>
-                        {uploadedFile.userCount} 个用户
+                        {t("cmp_create_task_batch_user_count", { count: uploadedFile.userCount })}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>
-                        上传于{" "}
-                        {uploadedFile.uploadDate.toLocaleDateString(
-                          "zh-CN",
-                        )}
+                        {t("cmp_create_task_batch_uploaded_on", {
+                          date: uploadedFile.uploadDate.toLocaleDateString()
+                        })}
                       </span>
                     </div>
                   </div>
@@ -1388,7 +1355,7 @@ function InputSection({
                 <button
                   onClick={onRemoveFile}
                   className="p-2 hover:bg-red-100 rounded-lg transition-colors group"
-                  title="删除文件"
+                  title={t("cmp_create_task_batch_remove_file")}
                 >
                   <Trash2 className="w-4 h-4 text-red-500 group-hover:text-red-700" />
                 </button>
@@ -1397,7 +1364,7 @@ function InputSection({
               {/* Progress/Stats Bar */}
               <div className="mt-4 pt-4 border-t border-green-200">
                 <div className="flex items-center justify-between text-xs text-green-700 mb-2">
-                  <span>文件解析完成</span>
+                  <span>{t("cmp_create_task_batch_file_parsed")}</span>
                   <span className="text-green-800">100%</span>
                 </div>
                 <div className="w-full h-2 bg-green-200 rounded-full overflow-hidden">
@@ -1420,7 +1387,7 @@ function InputSection({
                 <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-xl z-10">
                   <div className="flex items-center gap-2 text-orange-600 font-medium animate-pulse">
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>正在解析文件...</span>
+                    <span>{t("cmp_create_task_batch_parsing")}</span>
                   </div>
                 </div>
               )}
@@ -1432,7 +1399,7 @@ function InputSection({
                   <div className="text-xl text-orange-600">
                     {uploadedFile.userCount}
                   </div>
-                  <div className="text-xs text-gray-500">总用户数</div>
+                  <div className="text-xs text-gray-500">{t("cmp_create_task_batch_total_users")}</div>
                 </div>
               </div>
               
@@ -1444,9 +1411,9 @@ function InputSection({
                 </div>
                 <div className="text-left">
                   <div className="text-xl text-purple-600">
-                    {batchEstimatedTimeText || "0 seconds"}
+                    {batchEstimatedTimeText || t("cmp_create_task_batch_estimated_time_fallback")}
                   </div>
-                  <div className="text-xs text-gray-500">预计时间</div>
+                  <div className="text-xs text-gray-500">{t("cmp_create_task_batch_estimated_time")}</div>
                 </div>
               </div>
             </div>
@@ -1497,7 +1464,7 @@ function FilterToggle({
           {label}{" "}
           {notRecommended && (
             <span className="text-xs text-yellow-700">
-              （不推荐）
+              {t("cmp_create_task_not_recommended_suffix")}
             </span>
           )}
           {showHint && hintText && (

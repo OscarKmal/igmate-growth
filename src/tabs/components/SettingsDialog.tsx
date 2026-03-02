@@ -179,7 +179,7 @@ export function SettingsDialog({
                 {/* Random Range */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm">Random Range</Label>
+                    <Label className="text-sm">{t('tab_settings_random_range')}</Label>
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
@@ -204,7 +204,7 @@ export function SettingsDialog({
                     step={1}
                     className="w-full"
                   />
-                  <p className="text-xs text-gray-500">每次请求额外增加 0 ~ N 秒的随机延迟，有效降低风控风险。</p>
+                  <p className="text-xs text-gray-500">{t('tab_settings_random_range_desc')}</p>
                 </div>
               </div>
             </CollapsibleContent>

@@ -21,7 +21,8 @@ export function DailyFollowOverDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" aria-describedby={undefined}>
-        <DialogTitle className="sr-only">Dialog</DialogTitle>
+
+        <DialogTitle className="sr-only">{t("dlg_common_a11y_dialog_title")}</DialogTitle>
 		<div className="space-y-4 py-2">
           <PremiumUpgradeCard
             currentUsage={dailyUsedCount}

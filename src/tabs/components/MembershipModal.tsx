@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Crown, Check, Zap, Shield, TrendingUp } from 'lucide-react';
+import { t } from '~utils/commonFunction';
 
 interface MembershipModalProps {
   onClose: () => void;
@@ -22,8 +23,8 @@ export function MembershipModal({ onClose }: MembershipModalProps) {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-4">
               <Crown className="w-8 h-8" />
             </div>
-            <h2 className="text-3xl mb-2">升级会员，解锁全部功能</h2>
-            <p className="text-white/90">加速您的Instagram增长之旅</p>
+            <h2 className="text-3xl mb-2">{t('dlg_membership_title')}</h2>
+            <p className="text-white/90">{t('dlg_membership_subtitle')}</p>
           </div>
         </div>
 
@@ -31,83 +32,83 @@ export function MembershipModal({ onClose }: MembershipModalProps) {
         <div className="p-8">
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <PricingCard
-              name="月付"
-              price="¥99"
-              period="/月"
+              name={t('dlg_membership_plan_monthly')}
+              price={t('dlg_membership_plan_monthly_price')}
+              period={t('dlg_membership_plan_monthly_period')}
               popular={false}
               features={[
-                '所有核心功能',
-                '每日140人关注限额',
-                '智能取关功能',
-                '数据分析报告',
-                '邮件支持',
+                t('dlg_membership_feature_core'),
+                t('dlg_membership_feature_daily_limit_140'),
+                t('dlg_membership_feature_smart_unfollow'),
+                t('dlg_membership_feature_analytics'),
+                t('dlg_membership_feature_email_support'),
               ]}
             />
 
             <PricingCard
-              name="季付"
-              price="¥249"
-              period="/季"
+              name={t('dlg_membership_plan_quarterly')}
+              price={t('dlg_membership_plan_quarterly_price')}
+              period={t('dlg_membership_plan_quarterly_period')}
               popular={true}
-              savings="节省 ¥48"
+              savings={t('dlg_membership_plan_quarterly_savings')}
               features={[
-                '所有核心功能',
-                '每日140人关注限额',
-                '智能取关功能',
-                '数据分析报告',
-                '优先客服支持',
-                '高级过滤选项',
+                t('dlg_membership_feature_core'),
+                t('dlg_membership_feature_daily_limit_140'),
+                t('dlg_membership_feature_smart_unfollow'),
+                t('dlg_membership_feature_analytics'),
+                t('dlg_membership_feature_priority_support'),
+                t('dlg_membership_feature_advanced_filters'),
               ]}
             />
 
             <PricingCard
-              name="年付"
-              price="¥799"
-              period="/年"
+              name={t('dlg_membership_plan_yearly')}
+              price={t('dlg_membership_plan_yearly_price')}
+              period={t('dlg_membership_plan_yearly_period')}
               popular={false}
-              savings="节省 ¥389"
+              savings={t('dlg_membership_plan_yearly_savings')}
               features={[
-                '所有核心功能',
-                '每日140人关注限额',
-                '智能取关功能',
-                '数据分析报告',
-                '专属客服支持',
-                '高级过滤选项',
-                'API接口访问',
+                t('dlg_membership_feature_core'),
+                t('dlg_membership_feature_daily_limit_140'),
+                t('dlg_membership_feature_smart_unfollow'),
+                t('dlg_membership_feature_analytics'),
+                t('dlg_membership_feature_dedicated_support'),
+                t('dlg_membership_feature_advanced_filters'),
+                t('dlg_membership_feature_api_access'),
               ]}
             />
           </div>
 
           {/* Features Comparison */}
           <div className="bg-gray-50 rounded-xl p-6 mb-8">
-            <h3 className="text-lg mb-6 text-center">会员功能对比</h3>
+            <h3 className="text-lg mb-6 text-center">{t('dlg_membership_compare_title')}</h3>
             
             <div className="grid md:grid-cols-2 gap-6">
               <FeatureItem
                 icon={<Zap className="w-5 h-5 text-yellow-600" />}
-                title="智能批量关注"
-                description="从多种来源自动获取目标用户，支持精准过滤"
+                title={t('dlg_membership_compare_item_bulk_follow_title')}
+                description={t('dlg_membership_compare_item_bulk_follow_desc')}
                 premium={false}
               />
               
               <FeatureItem
                 icon={<TrendingUp className="w-5 h-5 text-purple-600" />}
-                title="效果数据分析"
-                description="实时追踪回关率，优化增长策略"
+                title={t('dlg_membership_compare_item_analytics_title')}
+                description={t('dlg_membership_compare_item_analytics_desc')}
                 premium={false}
               />
               
               <FeatureItem
                 icon={<Crown className="w-5 h-5 text-orange-600" />}
-                title="智能取关管理"
-                description="一键取关未回关用户，保持账号质量"
+                title={t('dlg_membership_compare_item_unfollow_title')}
+                description={t('dlg_membership_compare_item_unfollow_desc')}
                 premium={true}
               />
               
               <FeatureItem
                 icon={<Shield className="w-5 h-5 text-green-600" />}
-                title="安全速率控制"
-                description="智能控制操作频率，避免账号风险"
+                title={t('dlg_membership_compare_item_safety_title')}
+                description={t('dlg_membership_compare_item_safety_desc')}
                 premium={false}
               />
             </div>
@@ -118,20 +119,20 @@ export function MembershipModal({ onClose }: MembershipModalProps) {
             <div className="flex items-center justify-center gap-8 text-sm text-gray-600 mb-6">
               <div className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-green-500" />
-                <span>安全支付</span>
+                <span>{t('dlg_membership_trust_secure_payment')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-green-500" />
-                <span>随时取消</span>
+                <span>{t('dlg_membership_trust_cancel_anytime')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-green-500" />
-                <span>7天退款保证</span>
+                <span>{t('dlg_membership_trust_refund_7days')}</span>
               </div>
             </div>
 
             <p className="text-xs text-gray-500">
-              选择订阅即表示您同意我们的服务条款和隐私政策
+              {t('dlg_membership_terms_notice')}
             </p>
           </div>
         </div>
@@ -164,7 +165,7 @@ function PricingCard({
       {popular && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
           <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-4 py-1 rounded-full">
-            最受欢迎
+            {t('dlg_membership_most_popular')}
           </div>
         </div>
       )}
@@ -194,7 +195,7 @@ function PricingCard({
           ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 shadow-md hover:shadow-lg'
           : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
       }`}>
-        选择{name}
+        {t('dlg_membership_choose_plan', { name })}
       </button>
     </div>
   );

@@ -3,7 +3,7 @@ import { User, Users, UserPlus, Crown, TrendingUp, Info, Activity } from 'lucide
 import { Skeleton } from '~components/ui/skeleton';
 import browser from 'webextension-polyfill';
 import { getOrCreateUserInfo } from '~utils/functions';
-import { jumpLogin } from '~utils/commonFunction';
+import { jumpLogin, t } from '~utils/commonFunction';
 import { sendToBackground } from '@plasmohq/messaging';
 import type { UserInfo } from '~modles/extension';
 
@@ -217,9 +217,9 @@ export function UserProfile({
 
   // Determine safety status
   const getSafetyStatus = () => {
-    if (progressPercent < 70) return { color: 'green', text: 'Safe pace', icon: '🟢' };
-    if (progressPercent < 90) return { color: 'yellow', text: 'Moderate', icon: '🟡' };
-    return { color: 'red', text: 'Approaching limit', icon: '🔴' };
+    if (progressPercent < 70) return { color: 'green', text: t('cmp_user_profile_safety_safe_pace'), icon: '🟢' };
+    if (progressPercent < 90) return { color: 'yellow', text: t('cmp_user_profile_safety_moderate'), icon: '🟡' };
+    return { color: 'red', text: t('cmp_user_profile_safety_approaching_limit'), icon: '🔴' };
   };
 
   const safetyStatus = getSafetyStatus();
@@ -265,7 +265,11 @@ export function UserProfile({
                 }`}
               >
                 <Crown className="w-3 h-3" />
-                <span>{isPremium ? 'Premium' : 'Free'}</span>
+                <span>
+                  {isPremium
+                    ? t('cmp_user_profile_membership_premium')
+                    : t('cmp_user_profile_membership_free')}
+                </span>
               </button>
 
 			  <button
@@ -277,7 +281,11 @@ export function UserProfile({
 						: 'bg-white border border-purple-200 text-purple-700 hover:bg-purple-50'
 				}`}
 			  >
-				<span>{isPluginLoggedIn ? 'Logout' : 'Login'}</span>
+				<span>
+					{isPluginLoggedIn
+						? t('cmp_user_profile_plugin_logout')
+						: t('cmp_user_profile_plugin_login')}
+				</span>
 			  </button>
             </div>
             <div className="text-sm text-gray-500">
@@ -299,7 +307,7 @@ export function UserProfile({
         <div className="flex gap-6">
           <GrowthStatItem
             icon={<Users className="w-5 h-5 text-purple-600" />}
-            label="粉丝"
+            label={t('cmp_user_profile_stat_followers')}
             total={followers}
             growth7d={followersGrowth7d}
             loading={loading}
@@ -308,7 +316,7 @@ export function UserProfile({
           />
           <GrowthStatItem
             icon={<UserPlus className="w-5 h-5 text-pink-600" />}
-            label="关注"
+            label={t('cmp_user_profile_stat_following')}
             total={following}
             growth7d={followingGrowth7d}
             loading={loading}
@@ -324,7 +332,7 @@ export function UserProfile({
         <div className="min-w-[200px]">
           <div className="flex items-center gap-2 mb-3">
             <Activity className="w-4 h-4 text-gray-600" />
-            <span className="text-sm text-gray-600">Today's Limit</span>
+            <span className="text-sm text-gray-600">{t('cmp_user_profile_today_limit')}</span>
             <span className="text-xs">{safetyStatus.icon}</span>
             <span className={`text-xs font-medium ${
               safetyStatus.color === 'green' ? 'text-green-600' :
@@ -363,7 +371,9 @@ export function UserProfile({
                 ) : (
                   <>
                     <span>{todayActionsUsed} / {todayActionsLimit}</span>
-                    <span className="font-medium text-gray-700">{todayRemaining} left</span>
+                    <span className="font-medium text-gray-700">
+                      {t('cmp_user_profile_today_remaining_left', { count: todayRemaining })}
+                    </span>
                   </>
                 )}
               </>
@@ -418,16 +428,16 @@ function GrowthStatItem({
               </div>
               <div className="flex items-center gap-1 mt-0.5">
                 <span className="text-xs text-white/80">
-                  近7天新增
+                  {t('cmp_user_profile_growth_7d_label')}
                 </span>
                 <div 
                   className="group relative inline-flex cursor-help"
-                  title="仅统计通过本插件实现的新增（安装插件之前的新增不统计）"
+                  title={t('cmp_user_profile_growth_7d_tooltip')}
                 >
                   <Info className="w-3 h-3 text-white/50 group-hover:text-white/80 transition-colors" />
                   {/* Custom Tooltip */}
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg z-10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                    仅统计通过本插件实现的新增（安装插件之前的新增不统计）
+                    {t('cmp_user_profile_growth_7d_tooltip')}
                     <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
                   </div>
                 </div>
@@ -438,7 +448,7 @@ function GrowthStatItem({
 
         {/* Total - Secondary Info */}
         <div className="pt-2 border-t border-white/20">
-          <div className="text-xs text-white/70">总计</div>
+          <div className="text-xs text-white/70">{t('cmp_user_profile_total_label')}</div>
           <div className="text-lg text-white">
             {loading ? (
               <Skeleton className="h-6 w-20 bg-white/20" />

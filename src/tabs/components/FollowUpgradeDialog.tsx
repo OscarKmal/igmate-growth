@@ -15,14 +15,15 @@ export function FollowUpgradeDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" aria-describedby={undefined}>
-        <DialogTitle className="sr-only">Dialog</DialogTitle>
+
+        <DialogTitle className="sr-only">{t("dlg_common_a11y_dialog_title")}</DialogTitle>
 		<div className="space-y-4 py-2">
           <PremiumUpgradeCard
             showLimitInfo={false}
             limitType="monthly"
             currentUsage={1}
             dailyLimit={1}
-            limitDescription={t('tab_upgrade_desc')}
+            limitDescription={t("dlg_follow_upgrade_desc")}
             onUpgrade={() => {
 			        openPricePage();
               onOpenChange(false);

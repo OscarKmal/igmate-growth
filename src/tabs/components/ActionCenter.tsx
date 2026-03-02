@@ -25,6 +25,7 @@ import { normalizeInsAvatarUrl } from "~utils/insAvatarUtils";
 import ConfirmDialog from "./ConfirmDialog";
 import { FollowUpgradeDialog } from "./FollowUpgradeDialog";
 import { cleanNonFollowers } from "~utils/cleanNonFollowers";
+import { t } from "~utils/commonFunction";
 import {
   deleteActiveGrowthTask,
   deleteStoppedGrowthTask,
@@ -263,13 +264,13 @@ export function ActionCenter({
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl flex items-center gap-2">
             <Play className="w-5 h-5 text-purple-600" />
-            Active Actions ({activeTasks.length})
+            {t("cmp_action_center_active_actions", { count: activeTasks.length })}
           </h2>
           <div className="flex items-center gap-3">
             <button
               onClick={onOpenSettings}
               className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all text-gray-600 shadow-sm"
-              title="Safety Settings"
+              title={t("cmp_action_center_safety_settings")}
             >
               <SettingsIcon className="w-5 h-5" />
             </button>
@@ -278,7 +279,7 @@ export function ActionCenter({
               className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all text-sm flex items-center gap-2 shadow-md"
             >
               <Play className="w-4 h-4" />
-              New Action
+              {t("cmp_action_center_new_action")}
             </button>
           </div>
         </div>
@@ -286,14 +287,14 @@ export function ActionCenter({
         {isLoadingTasks ? (
           <div className="text-center py-12 text-gray-500">
             <Loader2 className="w-10 h-10 mx-auto mb-3 text-gray-300 animate-spin" />
-            <p>Loading...</p>
+            <p>{t("cmp_action_center_loading")}</p>
           </div>
         ) : activeTasks.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
             <Clock className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p>No active actions yet</p>
+            <p>{t("cmp_action_center_no_active_actions")}</p>
             <p className="text-sm mt-1">
-              Create your first action to get started
+              {t("cmp_action_center_no_active_actions_desc")}
             </p>
           </div>
         ) : (
@@ -329,9 +330,11 @@ export function ActionCenter({
             ) : (
               <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
             )}
-            Stopped Actions (Last 30 days)
+            {t("cmp_action_center_stopped_actions_last_30_days")}
           </h2>
-          <span className="text-sm text-gray-500">{stoppedTasks.length} actions</span>
+          <span className="text-sm text-gray-500">
+            {t("cmp_action_center_actions_count", { count: stoppedTasks.length })}
+          </span>
         </button>
 
         {expandedHistory && (
@@ -363,10 +366,10 @@ export function ActionCenter({
       {/* Confirm Dialog */}
       {showConfirmDialog && confirmType === 'cancel' && (
         <ConfirmDialog
-          title="Cancel Task"
-          message="Are you sure you want to cancel this task? It will be moved to completed tasks."
-          confirmText="Confirm"
-          cancelText="Cancel"
+          title={t("dlg_confirm_cancel_task_title")}
+          message={t("dlg_confirm_cancel_task_message")}
+          confirmText={t("dlg_confirm_confirm")}
+          cancelText={t("dlg_confirm_cancel")}
           iconType="warning"
           confirmColor="red"
           onConfirm={confirmAction}
@@ -376,10 +379,10 @@ export function ActionCenter({
 
       {showConfirmDialog && confirmType === 'newAction' && (
         <ConfirmDialog
-          title="Account Safety Notice"
-          message="For account safety, only one action can run at a time. Creating a new action will automatically stop all current actions and move them to Stopped Actions. Do you want to proceed?"
-          confirmText="Proceed"
-          cancelText="Cancel"
+          title={t("dlg_confirm_account_safety_notice_title")}
+          message={t("dlg_confirm_account_safety_notice_message")}
+          confirmText={t("dlg_confirm_proceed")}
+          cancelText={t("dlg_confirm_cancel")}
           iconType="security"
           confirmColor="purple"
           onConfirm={confirmAction}
@@ -482,7 +485,7 @@ function ActionCard({
                 <button
                   onClick={handleOpenLink}
                   className="p-1 hover:bg-purple-50 rounded transition-colors group relative"
-                  title="Open in Instagram"
+                  title={t("cmp_action_center_open_in_instagram")}
                 >
                   <ExternalLink className="w-3.5 h-3.5 text-purple-400 group-hover:text-purple-600" />
                 </button>
@@ -491,11 +494,11 @@ function ActionCard({
             <div className="flex items-center gap-2 mt-1">
               {isPaused ? (
                 <span className="text-xs px-2 py-1 rounded-full flex items-center gap-1 bg-yellow-100 text-yellow-700">
-                  ⏸ Paused
+                  {t("cmp_action_center_status_paused")}
                 </span>
               ) : (
                 <span className="text-xs px-2 py-1 rounded-full flex items-center gap-1 bg-green-100 text-green-700">
-                  🟢 In Progress
+                  {t("cmp_action_center_status_in_progress")}
                 </span>
               )}
             </div>
@@ -519,7 +522,7 @@ function ActionCard({
                   d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
                 />
               </svg>
-              I Followed
+              {t("cmp_action_center_stat_i_followed")}
             </div>
             <div className="text-lg font-bold text-purple-600">
               {followedCount}
@@ -541,7 +544,7 @@ function ActionCard({
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              Follow Back
+              {t("cmp_action_center_stat_follow_back")}
             </div>
             <div className="text-lg font-bold text-green-600">
               {followedBackCount}
@@ -563,7 +566,7 @@ function ActionCard({
                   d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
                 />
               </svg>
-              Rate
+              {t("cmp_action_center_stat_rate")}
             </div>
             <div className="text-lg font-bold text-blue-600">
               {followBackRate}%
@@ -576,7 +579,7 @@ function ActionCard({
       <div className="mb-4">
         <div className="flex items-center justify-between text-sm mb-2">
           <div className="flex items-center gap-2">
-            <span className="text-gray-600">Progress</span>
+            <span className="text-gray-600">{t("cmp_action_center_progress")}</span>
             {!isPaused && (
               <Loader2 className="w-3.5 h-3.5 text-green-500 animate-spin" />
             )}
@@ -612,15 +615,15 @@ function ActionCard({
       <div className="grid grid-cols-3 gap-4 mb-4">
         <div>
           <div className="text-xs text-gray-500 mb-1">
-            Today
+            {t("cmp_action_center_today")}
           </div>
           <div className="text-sm font-medium">
-            {`${todayFollowed} followed`}
+            {t("cmp_action_center_today_followed", { count: todayFollowed })}
           </div>
         </div>
         <div>
           <div className="text-xs text-gray-500 mb-1">
-            Est. completion
+            {t("cmp_action_center_est_completion")}
           </div>
           <div className="text-sm font-medium">
             {task.estimatedDays}
@@ -649,12 +652,12 @@ function ActionCard({
           {isPaused ? (
             <>
               <Play className="w-4 h-4" />
-              Resume
+              {t("cmp_action_center_resume")}
             </>
           ) : (
             <>
               <Pause className="w-4 h-4" />
-              Pause
+              {t("cmp_action_center_pause")}
             </>
           )}
         </button>
@@ -665,12 +668,12 @@ function ActionCard({
           {showDetails ? (
             <>
               <EyeOff className="w-4 h-4" />
-              Hide
+              {t("cmp_action_center_hide")}
             </>
           ) : (
             <>
               <Eye className="w-4 h-4" />
-              Details
+              {t("cmp_action_center_details")}
             </>
           )}
         </button>
@@ -679,7 +682,7 @@ function ActionCard({
           className="flex-1 px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm flex items-center justify-center gap-2"
         >
           <X className="w-4 h-4" />
-          Delete
+          {t("cmp_action_center_delete")}
         </button>
       </div>
 
@@ -688,21 +691,21 @@ function ActionCard({
         <div className="mt-4 pt-4 border-t">
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-medium text-gray-900 flex items-center gap-2">
-              Followed Users ({followedUsers.length})
+              {t("cmp_action_center_followed_users", { count: followedUsers.length })}
             </h4>
             <button
               onClick={handleToggleDetails}
               className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
             >
               <ChevronUp className="w-3.5 h-3.5" />
-              Collapse
+              {t("cmp_action_center_collapse")}
             </button>
           </div>
 
           <div className="space-y-2 max-h-80 overflow-y-auto">
             {followedUsers.length === 0 ? (
               <div className="text-sm text-gray-500 py-4 text-center">
-                No followed users yet.
+                {t("cmp_action_center_no_followed_users")}
               </div>
             ) : (
               followedUsers.map((user) => (
@@ -728,11 +731,15 @@ function ActionCard({
                     </div>
                     <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
                       <span>
-                        {(user.followers ?? 0).toLocaleString()} followers
+                        {t("cmp_action_center_user_followers", {
+                          count: (user.followers ?? 0).toLocaleString()
+                        })}
                       </span>
                       <span>·</span>
                       <span>
-                        {(user.following ?? 0).toLocaleString()} following
+                        {t("cmp_action_center_user_following", {
+                          count: (user.following ?? 0).toLocaleString()
+                        })}
                       </span>
                     </div>
                   </div>
@@ -742,12 +749,12 @@ function ActionCard({
                     {user.followStatus === "Following" ? (
                       <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
                         <UserCheck className="w-3 h-3" />
-                        Following
+                        {t("cmp_action_center_follow_status_following")}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
                         <UserPlus className="w-3 h-3" />
-                        {user.followStatus || "Requested"}
+                        {user.followStatus || t("cmp_action_center_follow_status_requested")}
                       </span>
                     )}
                   </div>
@@ -837,7 +844,7 @@ function CompletedTaskItem({
                     <button
                       onClick={handleOpenLink}
                       className="p-1 hover:bg-purple-50 rounded transition-colors group relative"
-                      title="Open in Instagram"
+                      title={t("cmp_action_center_open_in_instagram")}
                     >
                       <ExternalLink className="w-3 h-3 text-purple-400 group-hover:text-purple-600" />
                     </button>
@@ -846,7 +853,7 @@ function CompletedTaskItem({
                 <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
                   <span className="flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                    Completed
+                    {t("cmp_action_center_status_completed")}
                   </span>
                   <span>·</span>
                   {/* <span>{task.actions} actions</span> */}
@@ -872,7 +879,7 @@ function CompletedTaskItem({
                           d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
                         />
                       </svg>
-                      Followed
+                      {t("cmp_action_center_stat_followed")}
                     </div>
                     <div className="text-sm font-bold text-purple-600">
                       {followedCount}
@@ -894,7 +901,7 @@ function CompletedTaskItem({
                           d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      Follow Back
+                      {t("cmp_action_center_stat_follow_back")}
                     </div>
                     <div className="text-sm font-bold text-green-600">
                       {followedBackCount}
@@ -916,7 +923,7 @@ function CompletedTaskItem({
                           d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
                         />
                       </svg>
-                      Rate
+                      {t("cmp_action_center_stat_rate")}
                     </div>
                     <div className="text-sm font-bold text-blue-600">
                       {followBackRate}%
@@ -939,7 +946,7 @@ function CompletedTaskItem({
                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                           />
                         </svg>
-                        Cleaned
+                        {t("cmp_action_center_stat_cleaned")}
                       </div>
                       <div className="text-sm font-bold text-orange-600">
                         {task.cleanedCount}
@@ -978,7 +985,7 @@ function CompletedTaskItem({
             ) : (
               <UserCheck className="w-3 h-3" />
             )}
-            Clean Non-Followers
+            {t("cmp_action_center_clean_non_followers")}
           </button>
 
           <button
@@ -995,7 +1002,7 @@ function CompletedTaskItem({
             ) : (
               <X className="w-3 h-3" />
             )}
-            Delete
+            {t("cmp_action_center_delete")}
           </button>
         </div>
       </div>
