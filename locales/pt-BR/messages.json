@@ -325,6 +325,12 @@
   "cmp_action_center_progress": {
     "message": "Progresso"
   },
+  "cmp_action_center_filtered_count": {
+    "message": "Filtrados: {count}"
+  },
+  "cmp_action_center_pause_reason_userinfo_fail": {
+    "message": "A busca de informações do usuário para o Smart Filter falhou muitas vezes. A tarefa foi pausada. Tente novamente mais tarde."
+  },
   "cmp_action_center_today": {
     "message": "Hoje"
   },
@@ -437,7 +443,7 @@
     "message": "Melhorar o follow-back"
   },
   "cmp_create_task_filter_follow_ratio_desc": {
-    "message": "Contas com mais seguidores do que seguindo tendem a seguir de volta"
+    "message": "Contas com mais seguindo do que seguidores tendem a seguir de volta"
   },
   "cmp_create_task_ratio_loose": {
     "message": "Leve"

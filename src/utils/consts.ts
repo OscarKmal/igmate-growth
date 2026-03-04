@@ -74,6 +74,8 @@ export const storageName = {
 	appConfigStorageName: "appConfig",
 	//Safety Settings Configuration Name
 	safetySettingsStorageName: "safetySettings",
+	//Instagram csrftoken 缓存（用于减少重复请求 getCurrentUser）
+	insCsrfTokenCacheStorageName: "insCsrfTokenCache",
 	//自动关注成功（按天累计）
 	autoFollowSuccessDailyStorageName: "autoFollowSuccessDaily",
 	//自动关注成功记录（用于统计近 7 天新增关注等）

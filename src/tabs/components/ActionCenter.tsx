@@ -401,7 +401,7 @@ function ActionCard({
   handleDeleteActiveTask,
   handlePauseResumeTask,
   opTaskId,
-  opType,
+  opType
 }: {
   task: GrowthTask;
   handleCleanNonFollowers: (taskId: string) => void;
@@ -425,6 +425,7 @@ function ActionCard({
   const followedBackCount = task.followedBackCount ?? 0;
   const followBackRate = followedCount > 0 ? Math.round((followedBackCount / followedCount) * 100) : 0;
   const todayFollowed = task.todayActions ?? 0;
+  const filteredCount = task.filteredCount ?? 0;
 
   // Determine if task has a link URL
   const hasLinkUrl =
@@ -445,10 +446,6 @@ function ActionCard({
     handlePauseResumeTask(task);
   };
 
-  const handleCancel = () => {
-    handleCancelTask(task.id);
-  };
-
   const handleDelete = () => {
     handleDeleteActiveTask(task.id);
   };
@@ -464,7 +461,12 @@ function ActionCard({
   }
 
   return (
-    <div className="border border-gray-200 rounded-xl p-5 hover:border-purple-300 hover:shadow-md transition-all">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-300">
+      {!!task.pauseReasonKey && (
+        <div className="mb-4 text-sm text-red-600">
+          {t(task.pauseReasonKey)}
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3 flex-1">
@@ -588,6 +590,11 @@ function ActionCard({
             {task.progress} / {task.total}
           </span>
         </div>
+        {filteredCount > 0 && (
+          <div className="text-xs text-gray-500 mb-2">
+            {t("cmp_action_center_filtered_count", { count: filteredCount })}
+          </div>
+        )}
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden relative">
           <div
             className={`h-full rounded-full transition-all relative overflow-hidden ${

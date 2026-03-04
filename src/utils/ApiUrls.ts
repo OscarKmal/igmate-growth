@@ -56,4 +56,6 @@ export const INS_API_URLS = {
     queryApi: 'graphql/query/',
     //get post likes
     postLikes: 'api/v1/media/{mediaId}/likers/',
+    //new auto follow
+    newAutoFollow: 'api/v1/friendships/create/{userId}/',
 }

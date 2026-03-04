@@ -74,7 +74,7 @@ export interface FollowedUserRecord {
    * 默认值：空字符串
    *
    * 说明：
-   * - 该字段直接存储 `InsRequestUtils.autoFollow` 返回的 `result.result` 原始值，不做解析。
+   * - 该字段直接存储 `InsRequestUtils.newAutoFollow` 返回的 `result.result` 原始值，不做解析。
    */
   followStatus?: string;
 
@@ -177,6 +177,22 @@ export interface GrowthTask {
    * 默认值：0
    */
   total: number;
+
+  /**
+   * 用途：被“智能筛选”过滤掉的数量（不包含关注失败）。
+   * 类型：number
+   * 可选性：可选
+   * 默认值：0
+   */
+  filteredCount?: number;
+
+  /**
+   * 用途：任务被自动暂停时的原因 i18n key（用于 UI 提示）。
+   * 类型：string
+   * 可选性：可选
+   * 默认值：空字符串
+   */
+  pauseReasonKey?: string;
 
   /**
    * 用途：任务来源链接（例如竞对主页、Post/Reel 链接）。
@@ -714,7 +730,7 @@ export async function startGrowthTask(taskId: string): Promise<GrowthTaskSnapsho
     if (!t) return t;
 
     if (t.id === taskId) {
-      return { ...t, status: "running" as GrowthTaskStatus, updatedAt: now };
+      return { ...t, status: "running" as GrowthTaskStatus, updatedAt: now, pauseReasonKey: "" };
     }
 
     if (t.status === "running") {

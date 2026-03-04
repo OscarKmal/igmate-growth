@@ -17,6 +17,11 @@ import {
   getAutoFollowSuccessDailyCounter,
   recordAutoFollowSuccess
 } from "~utils/autoFollowStats";
+import {
+  decideSmartFilter,
+  hasEnabledSmartFilters,
+  type GrowthSmartFilterUserInfo
+} from "~utils/growthSmartFiltersUtils";
 import { buildTaskEstimatedDaysText } from "~utils/estimateTimeUtils";
 import { getOrCreateUserInfo, getStorage, sleep } from './functions';
 import { storageName } from './consts';
@@ -42,6 +47,25 @@ class GrowthTaskRunner {
   private stopped: boolean = false;
   private runningLoop: boolean = false;
   private operatorUserId: string = "";
+
+  /**
+   * 用途：智能筛选用户信息缓存。
+   *
+   * 说明：
+   * - 智能筛选需要 followers/following/postCount/isVerified 等信息。
+   * - 部分信息需要通过 getInsUserInfo(userId) 额外请求获取。
+   * - 为避免同一用户被重复请求，Runner 内对 userId 做缓存。
+   */
+  private smartFilterUserInfoCache: Map<string, GrowthSmartFilterUserInfo> = new Map();
+
+  /**
+   * 用途：getInsUserInfo 连续失败次数（按 taskId 维度）。
+   *
+   * 说明：
+   * - 智能筛选会在每次关注前拉取用户信息。
+   * - 若短时间内连续失败，极可能触发风控；此时需要按 failedPauseInterval 退避，超过 2 次仍失败则自动暂停任务。
+   */
+  private smartFilterFetchFailMap: Record<string, number> = {};
 
   /**
    * 用途：已关注用户记录最大保留长度。
@@ -114,6 +138,159 @@ class GrowthTaskRunner {
   }
 
   /**
+   * 构造“智能筛选”所需的用户信息（优先使用 seed，不足则后续可补全）。
+   *
+   * 用途：
+   * - competitor-follow 的 followers/following 列表节点
+   * - post-follow 的 likers/commenters 节点
+   *
+   * 参数：
+   * - userId：string；目标用户 id。
+   * - seed：unknown；候选用户的种子数据（可能包含 followers/following 等字段）。
+   *
+   * 返回值：
+   * - GrowthSmartFilterUserInfo
+   */
+  private buildSmartFilterUserInfoFromSeed(userId: string, seed: unknown): GrowthSmartFilterUserInfo {
+    const parsed = parseInsUserFromSeed(seed);
+    return {
+      userId,
+      username: parsed.username,
+      avatarUrl: parsed.avatarUrl,
+      followers: typeof parsed.followers === "number" ? parsed.followers : undefined,
+      following: typeof parsed.following === "number" ? parsed.following : undefined
+    };
+  }
+
+  /**
+   * 拉取（并缓存）智能筛选所需的用户信息：使用 getInsUserInfo。
+   *
+   * 用途：
+   * - 按你的要求：每次准备执行 autoFollow 前，都先获取一次用户信息，再进行智能筛选判断。
+   * - 通过缓存避免同一用户被重复拉取，也避免“关注成功后再拉一次用户信息”。
+   * - 当触发风控/失败时：按 failedPauseInterval 退避重试；超过 2 次仍失败则自动暂停任务。
+   *
+   * 参数：
+   * - taskId：string；任务 id，用于失败计数与可中断等待。
+   * - userId：string；目标用户 id。
+   * - seed：unknown；候选用户种子信息（用于补齐 username/avatar 等 UI 字段）。
+   *
+   * 返回值：
+   * - Promise<GrowthSmartFilterUserInfo | null>；成功返回合并后的信息；失败且触发自动暂停时返回 null。
+   */
+  private async fetchSmartFilterUserInfoBeforeFollow(
+    taskId: string,
+    userId: string,
+    seed: unknown
+  ): Promise<GrowthSmartFilterUserInfo | null> {
+    const base = this.buildSmartFilterUserInfoFromSeed(userId, seed);
+
+    // 先写入 base，保证即使后续失败也能为 UI 提供最小信息
+    this.smartFilterUserInfoCache.set(userId, {
+      ...this.smartFilterUserInfoCache.get(userId),
+      ...base
+    });
+
+    const maxRetry = 3; // 失败超过 2 次仍失败 => 第 3 次失败后暂停
+    for (let attempt = 1; attempt <= maxRetry; attempt += 1) {
+      try {
+        const rtn = await InsRequestUtils.getInsUserInfo(userId);
+        if (rtn?.success && rtn.data) {
+          // 成功：清零失败计数
+          this.smartFilterFetchFailMap[taskId] = 0;
+
+          const merged: GrowthSmartFilterUserInfo = {
+            ...this.smartFilterUserInfoCache.get(userId),
+            ...base,
+            username: base.username || rtn.data.username,
+            avatarUrl: base.avatarUrl || rtn.data.profileImage,
+            followers: typeof rtn.data.follower === "number" ? rtn.data.follower : base.followers,
+            following: typeof rtn.data.following === "number" ? rtn.data.following : base.following,
+            postCount: typeof rtn.data.post === "number" ? rtn.data.post : undefined,
+            isVerified: typeof rtn.data.isVerified === "boolean" ? rtn.data.isVerified : undefined
+          };
+
+          this.smartFilterUserInfoCache.set(userId, merged);
+          return merged;
+        }
+      } catch {
+        // ignore
+      }
+
+      // 失败：累加并退避等待
+      const current = this.smartFilterFetchFailMap[taskId] || 0;
+      const next = current + 1;
+      this.smartFilterFetchFailMap[taskId] = next;
+
+      // 达到阈值：自动暂停，并写入原因 key 供 UI 展示
+      if (next >= maxRetry) {
+        try {
+          await patchActiveGrowthTask(taskId, {
+            pauseReasonKey: "cmp_action_center_pause_reason_userinfo_fail"
+          });
+        } finally {
+          await pauseGrowthTask(taskId);
+          this.smartFilterFetchFailMap[taskId] = 0;
+        }
+        return null;
+      }
+
+      // 按 failedPauseInterval 等待后再重试
+      await this.waitFailurePauseInterval(taskId);
+    }
+
+    return null;
+  }
+
+  /**
+   * 获取（并缓存）智能筛选所需的用户信息。
+   *
+   * 用途：
+   * - 先使用 seed 中已有的 followers/following 做初筛。
+   * - 若过滤规则需要更多字段（postCount/isVerified），则通过 InsRequestUtils.getInsUserInfo 补全。
+   *
+   * 参数：
+   * - userId：string；目标用户 id。
+   * - seed：unknown；候选用户种子数据。
+   * - needMoreInfo：boolean；是否需要补全信息。
+   *
+   * 返回值：
+   * - Promise<GrowthSmartFilterUserInfo>
+   *
+   * 异常：
+   * - 本方法不抛异常；失败时返回已有 seed 信息。
+   */
+  /**
+   * 判断某个目标用户是否允许执行 autoFollow（智能筛选入口）。
+   *
+   * 用途：
+   * - competitor-follow / post-follow / csv-follow 三条链路在执行 autoFollow 之前统一调用。
+   *
+   * 参数：
+   * - task：GrowthTask；当前任务。
+   * - targetUserId：string；目标用户 id。
+   * - seed：unknown；候选用户种子信息（可能为空）。
+   *
+   * 返回值：
+   * - Promise<boolean>；true 表示允许关注；false 表示被过滤。
+   */
+  private async shouldAutoFollowBySmartFilters(task: GrowthTask, targetUserId: string, seed: unknown): Promise<boolean> {
+    try {
+      // 未启用任何智能筛选：直接放行，避免额外请求
+      if (!hasEnabledSmartFilters(task.filters)) return true;
+
+      // 按产品策略：每次关注前拉取一次用户信息
+      const info = await this.fetchSmartFilterUserInfoBeforeFollow(task.id, targetUserId, seed);
+      if (!info) return false;
+
+      const decision = decideSmartFilter(task.filters, info);
+      return decision.pass !== false;
+    } catch {
+      return true;
+    }
+  }
+
+  /**
    * 计算任务预计完成时间文案。
    *
    * 用途：
@@ -178,36 +355,17 @@ class GrowthTaskRunner {
     seed?: any
   ): Promise<FollowedUserRecord> {
     const parsed = parseInsUserFromSeed(seed);
+
+    const cached = this.smartFilterUserInfoCache.get(targetUserId);
     const record: FollowedUserRecord = {
       userId: targetUserId,
-      username: parsed.username,
-      avatarUrl: parsed.avatarUrl,
-      followers: parsed.followers,
-      following: parsed.following,
+      username: parsed.username || cached?.username,
+      avatarUrl: parsed.avatarUrl || cached?.avatarUrl,
+      followers: typeof parsed.followers === "number" ? parsed.followers : cached?.followers,
+      following: typeof parsed.following === "number" ? parsed.following : cached?.following,
       followStatus: "",
       followedAt: Date.now()
     };
-
-    try {
-      if (
-        record.username &&
-        record.avatarUrl &&
-        typeof record.followers === "number" &&
-        typeof record.following === "number"
-      ) {
-        return record;
-      }
-
-      const userRtn = await InsRequestUtils.getInsUserInfo(targetUserId);
-      if (userRtn?.success && userRtn.data) {
-        record.username = record.username || userRtn.data.username;
-        record.avatarUrl = record.avatarUrl || userRtn.data.profileImage;
-        record.followers = typeof userRtn.data.follower === "number" ? userRtn.data.follower : record.followers;
-        record.following = typeof userRtn.data.following === "number" ? userRtn.data.following : record.following;
-      }
-    } catch {
-      // ignore
-    }
 
     return record;
   }
@@ -354,6 +512,7 @@ class GrowthTaskRunner {
   private resetCriticalFailure(taskId: string) {
     if (!taskId) return;
     this.criticalFailureMap[taskId] = 0;
+    this.smartFilterFetchFailMap[taskId] = 0;
   }
 
   /**
@@ -413,6 +572,7 @@ class GrowthTaskRunner {
     this.operatorUserId = "";
     this.noProgressMap = {};
     this.criticalFailureMap = {};
+    this.smartFilterFetchFailMap = {};
     this.loop();
   }
 
@@ -622,7 +782,18 @@ class GrowthTaskRunner {
       const targetUserId = u?.id;
       if (!targetUserId) continue;
 
-      const followRtn = await InsRequestUtils.autoFollow(targetUserId);
+      // 智能筛选：不满足条件则跳过该用户
+      const allow = await this.shouldAutoFollowBySmartFilters(task, targetUserId, u);
+      if (!allow) {
+        await patchActiveGrowthTask(latest.id, {
+          filteredCount: (latest.filteredCount || 0) + 1
+        });
+        ops++;
+        await this.waitRequestInterval(task.id);
+        continue;
+      }
+
+      const followRtn = await InsRequestUtils.newAutoFollow(targetUserId);
       if (followRtn?.success) {
         this.resetCriticalFailure(task.id);
         // 统计：今日 +1
@@ -847,7 +1018,19 @@ class GrowthTaskRunner {
       const targetUserId = queue.shift();
       if (!targetUserId) break;
 
-      const followRtn = await InsRequestUtils.autoFollow(targetUserId);
+      // 智能筛选：post-follow 队列无 seed 信息，这里传 null
+      const allow = await this.shouldAutoFollowBySmartFilters(task, targetUserId, null);
+      if (!allow) {
+        await patchActiveGrowthTask(latest.id, {
+          filteredCount: (latest.filteredCount || 0) + 1
+        });
+        // 队列已经 shift，视为已处理（不回填队列），避免死循环
+        ops++;
+        await this.waitRequestInterval(task.id);
+        continue;
+      }
+
+      const followRtn = await InsRequestUtils.newAutoFollow(targetUserId);
       if (followRtn?.success) {
         this.resetCriticalFailure(task.id);
         await incrementAutoFollowSuccessDailyCounter(1);
@@ -977,8 +1160,21 @@ class GrowthTaskRunner {
         this.resetCriticalFailure(task.id);
         const targetUserId = userRtn.data.userId;
 
+        // 智能筛选：csv-follow 没有 seed 信息，这里传 null
+        const allow = await this.shouldAutoFollowBySmartFilters(task, targetUserId, null);
+        if (!allow) {
+          await patchActiveGrowthTask(latest.id, {
+            filteredCount: (latest.filteredCount || 0) + 1,
+            csvUsernames: usernames
+          });
+          // 跳过该用户，并回写剩余队列
+          ops++;
+          await this.waitRequestInterval(task.id);
+          continue;
+        }
+
         // 2) 执行 autoFollow
-        const followRtn = await InsRequestUtils.autoFollow(targetUserId);
+        const followRtn = await InsRequestUtils.newAutoFollow(targetUserId);
         if (followRtn?.success) {
           this.resetCriticalFailure(task.id);
           await incrementAutoFollowSuccessDailyCounter(1);

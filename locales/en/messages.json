@@ -325,6 +325,12 @@
   "cmp_action_center_progress": {
     "message": "Progress"
   },
+  "cmp_action_center_filtered_count": {
+    "message": "Filtered: {count}"
+  },
+  "cmp_action_center_pause_reason_userinfo_fail": {
+    "message": "Smart Filter user info fetch failed too many times. Task has been paused. Please try again later."
+  },
   "cmp_action_center_today": {
     "message": "Today"
   },
@@ -437,7 +443,7 @@
     "message": "Improve follow-back rate"
   },
   "cmp_create_task_filter_follow_ratio_desc": {
-    "message": "Accounts with more followers than following are more likely to follow back"
+    "message": "Accounts with more following than followers are more likely to follow back"
   },
   "cmp_create_task_ratio_loose": {
     "message": "Loose"
