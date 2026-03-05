@@ -9,7 +9,7 @@ export const safetyPresets: SafetyPreset[] = [
       color: 'from-green-500 to-emerald-500',
       description: 'Maximum safety, slowest speed',
       settings: {
-        requestInterval: 10,
+        requestInterval: 60,
         batchSize: 0, // Not used anymore
         batchPause: 0, // Not used anymore
         failurePause: 900,
@@ -22,7 +22,7 @@ export const safetyPresets: SafetyPreset[] = [
       color: 'from-blue-500 to-cyan-500',
       description: 'Recommended for most users',
       settings: {
-        requestInterval: 6,
+        requestInterval: 40,
         batchSize: 0, // Not used anymore
         batchPause: 0, // Not used anymore
         failurePause: 600,
@@ -35,7 +35,7 @@ export const safetyPresets: SafetyPreset[] = [
       color: 'from-orange-500 to-red-500',
       description: 'Faster but higher risk',
       settings: {
-        requestInterval: 4,
+        requestInterval: 20,
         batchSize: 0, // Not used anymore
         batchPause: 0, // Not used anymore
         failurePause: 300,

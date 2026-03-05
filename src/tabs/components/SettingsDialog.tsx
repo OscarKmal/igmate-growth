@@ -126,8 +126,8 @@ export function SettingsDialog({
                           onCustomSettingsChange({ ...customSettings, requestInterval: Number(e.target.value) })
                         }
                         className="w-16 h-8 text-center text-sm"
-                        min={2}
-                        max={180}
+                        min={20}
+                        max={900}
                       />
                       <span className="text-xs text-gray-500">{t('tab_settings_seconds')}</span>
                     </div>
@@ -137,8 +137,8 @@ export function SettingsDialog({
                     onValueChange={(value: number[]) => 
                       onCustomSettingsChange({ ...customSettings, requestInterval: value[0] })
                     }
-                    min={2}
-                    max={180}
+                    min={20}
+                    max={900}
                     step={1}
                     className="w-full"
                   />
@@ -157,7 +157,7 @@ export function SettingsDialog({
                           onCustomSettingsChange({ ...customSettings, failurePause: Number(e.target.value) })
                         }
                         className="w-16 h-8 text-center text-sm"
-                        min={60}
+                        min={300}
                         max={1800}
                       />
                       <span className="text-xs text-gray-500">{t('tab_settings_seconds')}</span>
@@ -168,7 +168,7 @@ export function SettingsDialog({
                     onValueChange={(value: number[]) => 
                       onCustomSettingsChange({ ...customSettings, failurePause: value[0] })
                     }
-                    min={60}
+                    min={300}
                     max={1800}
                     step={1}
                     className="w-full"
