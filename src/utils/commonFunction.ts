@@ -1,7 +1,6 @@
 import browser from 'webextension-polyfill';
 import {InsRequestUtils} from '~utils/InsRequestUtils';
 import { getStorage, setStorage, sleep} from '~utils/functions';
-import type { postType, PostComment } from '~modles/extension';
 import {selectedFieldsConsts, storageName} from '~utils/consts';
 import {Fetcher} from '~utils/Fetcher';
 import { appInfo } from './AppInfo';
@@ -152,21 +151,6 @@ export const formatRelativeDate = (t?: number | string) => {
 	if (diffDays === 1) return "yesterday";
 	return date.toISOString().slice(0, 10);
 };
-
-export function convertToComment(comment: any){
-	let postComment: PostComment[] = [];
-	for(const item of comment){
-		postComment.push({
-			id: item.id,
-			userId: item.owner.id,
-			username: item.owner.username,
-			avatar: item.owner.profile_pic_url,
-			commentText: item.text,
-			publishedAt: item.created_at,
-		});
-	}
-	return postComment;
-}
 
 export function isToday(time: number) {
   const d = new Date(time)
@@ -376,7 +360,7 @@ export function parseInstagramUrl(url: string) {
 			return null;
 	    }
 	    const [, typePart, shortCode] = match;
-	    const type: postType = typePart.toLowerCase() === 'p' ? 'post' : 'reels';
+	    const type = typePart.toLowerCase() === 'p' ? 'post' : 'reels';
 	    return { type, shortCode };
 	} catch {
 	    return null;

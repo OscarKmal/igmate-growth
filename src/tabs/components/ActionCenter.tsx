@@ -24,8 +24,17 @@ import {
 import { normalizeInsAvatarUrl } from "~utils/insAvatarUtils";
 import ConfirmDialog from "./ConfirmDialog";
 import { FollowUpgradeDialog } from "./FollowUpgradeDialog";
+import { FollowResultDialog } from "./FollowResultDialog";
 import { cleanNonFollowers } from "~utils/cleanNonFollowers";
-import { t } from "~utils/commonFunction";
+import {
+  checkIsShowRating,
+  handleRateOnChromeStore,
+  onOpenFeedback,
+  t
+} from "~utils/commonFunction";
+import { getStorage, setStorage } from "~utils/functions";
+import { storageName } from "~utils/consts";
+import { formatDurationLargestUnit } from "~utils/estimateTimeUtils";
 import {
   deleteActiveGrowthTask,
   deleteStoppedGrowthTask,
@@ -62,6 +71,29 @@ export function ActionCenter({
   const [isLoadingTasks, setIsLoadingTasks] = useState(true);
   const [activeTasks, setActiveTasks] = useState<GrowthTask[]>([]);
   const [stoppedTasks, setStoppedTasks] = useState<StoppedGrowthTask[]>([]);
+
+  const [showFollowResultDialog, setShowFollowResultDialog] = useState(false);
+  const [followResult, setFollowResult] = useState({
+    count: 0,
+    filtered: 0,
+    time: "0 seconds"
+  });
+
+  const [rating, setRating] = useState(0);
+  const [hasRated, setHasRated] = useState(false);
+  const [showRatingCard, setShowRatingCard] = useState(true);
+  const [jumpChromeRating, setJumpChromeRating] = useState(false);
+
+  /**
+   * 用途：记录上一次 stoppedTasks 的快照，用于在 subscribe 回调中识别“新增的 completed 任务”。
+   */
+  const stoppedTasksRef = useRef<StoppedGrowthTask[]>([]);
+
+  /**
+   * 用途：避免同一个 completed 任务重复弹窗。
+   */
+  const lastShownCompletedTaskIdRef = useRef<string>("");
+
   const [opTaskId, setOpTaskId] = useState<string | null>(null);
   const [opType, setOpType] = useState<"pause" | "resume" | "stop" | "deleteStopped" | null>(null);
   const [cleaningTaskId, setCleaningTaskId] = useState<
@@ -89,6 +121,14 @@ export function ActionCenter({
         setActiveTasks(snapshot.activeTasks);
         setStoppedTasks(snapshot.stoppedTasks);
 
+        stoppedTasksRef.current = snapshot.stoppedTasks;
+
+        // 初始化：从配置中读取是否需要满分跳转 Chrome Store
+        const appConfigData = (await getStorage(storageName.appConfigStorageName)) || {};
+        if (appConfigData?.isJumpRateForFullMarks && appConfigData.isJumpRateForFullMarks === "true") {
+          setJumpChromeRating(true);
+        }
+
 		// 初始化时刷新一次回关统计（不阻塞 UI 渲染）
 		void refreshActiveTasksFollowBackCounts(snapshot.activeTasks);
       } finally {
@@ -98,6 +138,43 @@ export function ActionCenter({
       unsub = subscribeGrowthTaskSnapshot((snapshot) => {
         setActiveTasks(snapshot.activeTasks);
         setStoppedTasks(snapshot.stoppedTasks);
+
+        const prev = stoppedTasksRef.current;
+        stoppedTasksRef.current = snapshot.stoppedTasks;
+
+        // 识别“新增的 completed 任务”，并弹出 FollowResultDialog
+        const prevIds = new Set(prev.map((t) => t?.id).filter(Boolean) as string[]);
+        const newlyAddedCompleted = snapshot.stoppedTasks.find((t) => {
+          if (!t?.id) return false;
+          if (prevIds.has(t.id)) return false;
+          return t.stopReason === "completed";
+        });
+
+        if (newlyAddedCompleted?.id && newlyAddedCompleted.id !== lastShownCompletedTaskIdRef.current) {
+          lastShownCompletedTaskIdRef.current = newlyAddedCompleted.id;
+			void (async () => {
+				const followedCount = Number(newlyAddedCompleted.followedCount || 0);
+				const filteredCount = Number(newlyAddedCompleted.filteredCount || 0);
+				const startedAt = Number.isFinite(newlyAddedCompleted.createdAt) ? newlyAddedCompleted.createdAt : 0;
+				const stoppedAt = Number.isFinite(newlyAddedCompleted.stoppedAt) ? newlyAddedCompleted.stoppedAt : Date.now();
+				const elapsedSeconds = startedAt > 0 ? Math.max(0, Math.ceil((stoppedAt - startedAt) / 1000)) : 0;
+				const timeText = formatDurationLargestUnit(elapsedSeconds);
+
+				setFollowResult({
+					count: followedCount,
+					filtered: filteredCount,
+					time: timeText
+				});
+				setRating(0);
+				setHasRated(false);
+				const result = followedCount > 0 ? await checkIsShowRating() : false;
+				setShowRatingCard(result);
+				setShowFollowResultDialog(true);
+				if (result) {
+					await setStorage(storageName.viewRatingTimeStorageName, Date.now());
+				}
+			})();
+        }
       });
     };
 
@@ -389,6 +466,28 @@ export function ActionCenter({
           onCancel={() => setShowConfirmDialog(false)}
         />
       )}
+
+      <FollowResultDialog
+        open={showFollowResultDialog}
+        onOpenChange={setShowFollowResultDialog}
+        downloadResult={followResult}
+        rating={rating}
+        hasRated={hasRated}
+        showRatingCard={showRatingCard}
+        jumpChromeRating={jumpChromeRating}
+        onRatingClick={(selectedRating: number) => {
+          setRating(selectedRating);
+          window.setTimeout(() => {
+            setHasRated(true);
+          }, 100);
+        }}
+        onRateOnChromeStore={handleRateOnChromeStore}
+        onOpenFeedback={onOpenFeedback}
+        handleClickNewAction={() => {
+          setShowFollowResultDialog(false);
+          handleNewAction();
+        }}
+      />
     </div>
   );
 }

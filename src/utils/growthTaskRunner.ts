@@ -876,7 +876,6 @@ class GrowthTaskRunner {
       await patchActiveGrowthTask(task.id, {
         runnerHasNextPage: false
       });
-      await sleep(1000);
     }
   }
 
@@ -1026,6 +1025,20 @@ class GrowthTaskRunner {
         });
         // 队列已经 shift，视为已处理（不回填队列），避免死循环
         ops++;
+
+        // 若本次过滤后队列为空，则立刻判断是否满足 stop 条件；满足则直接 stop，避免最后一次过滤还等待。
+        if (queue.length === 0) {
+          const latestAfterFilter = (await getGrowthTaskSnapshot()).activeTasks.find((t) => t.id === task.id);
+          if (!latestAfterFilter || latestAfterFilter.status !== "running") return;
+
+          const likersDone = latestAfterFilter.postLikersDone === true || mode === "commenters";
+          const commentersDone = latestAfterFilter.postCommentersDone === true || mode === "likers";
+          if (likersDone && commentersDone) {
+            await stopGrowthTask(task.id, "completed");
+            return;
+          }
+        }
+
         await this.waitRequestInterval(task.id);
         continue;
       }
@@ -1169,6 +1182,13 @@ class GrowthTaskRunner {
           });
           // 跳过该用户，并回写剩余队列
           ops++;
+
+          // 若本次过滤后队列为空，则直接 stop，避免最后一次过滤还等待。
+          if (usernames.length === 0) {
+            await stopGrowthTask(task.id, "completed");
+            return;
+          }
+
           await this.waitRequestInterval(task.id);
           continue;
         }
@@ -1232,6 +1252,15 @@ class GrowthTaskRunner {
         }
       } else {
         // 用户名解析失败（可能账号已注销/改名）也跳过
+        // 若本次解析失败后队列为空，则直接 stop，避免进入 handleCriticalFailure 的退避等待。
+        if (usernames.length === 0) {
+          await patchActiveGrowthTask(latest.id, {
+            csvUsernames: usernames
+          });
+          await stopGrowthTask(task.id, "completed");
+          return;
+        }
+
         await this.handleCriticalFailure(task.id, "csv-follow:getUserByUsername");
         await patchActiveGrowthTask(latest.id, {
           csvUsernames: usernames
@@ -1239,6 +1268,13 @@ class GrowthTaskRunner {
       }
 
       ops++;
+
+      // 若队列已空，则立刻结束，避免最后一次处理后还等待。
+      if (usernames.length === 0) {
+        await stopGrowthTask(task.id, "completed");
+        return;
+      }
+
       await this.waitRequestInterval(task.id); // 使用安全随机间隔
     }
 

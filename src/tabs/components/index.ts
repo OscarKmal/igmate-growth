@@ -5,3 +5,4 @@ export { UserProfile } from './UserProfile';
 export { SettingsDialog } from './SettingsDialog';
 export { DailyFollowOverDialog } from './DailyFollowOverDialog';
 export { FollowUpgradeDialog } from './FollowUpgradeDialog';
+export { FollowResultDialog } from './FollowResultDialog';

@@ -127,9 +127,17 @@ export function CreateTask({
 	  }
 
     if (type === "csv-follow" && csvUsernames.length > 0) {
+      const safety = await loadNormalizedSafetySettings();
+      const estimatedDays = buildBatchFollowEstimatedTimeText({
+        count: csvUsernames.length,
+        requestIntervalSeconds: safety.requestIntervalSeconds,
+        requestRandomRangeSeconds: safety.requestRandomRangeSeconds,
+        fixedRequestDurationSeconds: 1.5
+      });
       await patchActiveGrowthTask(task.id, {
         csvUsernames,
-        total: csvUsernames.length
+        total: csvUsernames.length,
+        estimatedDays
       });
     }
 
